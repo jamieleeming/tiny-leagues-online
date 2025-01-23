@@ -427,7 +427,10 @@ function PokerLedger() {
                                     {calculateSettlements(ledgerData.playersInfos).map((settlement, index) => {
                                         const recipientVenmoId = playerVenmoMap[settlement.to];
                                         return (
-                                            <tr key={index}>
+                                            <tr 
+                                                key={index}
+                                                className={ledgerData.playersInfos[selectedPlayer]?.names[0] === settlement.from ? 'selected-player' : ''}
+                                            >
                                                 <td>{settlement.from}</td>
                                                 <td className="arrow-cell">→</td>
                                                 <td>{settlement.to}</td>
