@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/tiny-leagues-online/static/css/main.7dfd0d94.css",
-    "main.js": "/tiny-leagues-online/static/js/main.f49316ba.js",
+    "main.js": "/tiny-leagues-online/static/js/main.c3d60e88.js",
     "static/js/488.af104311.chunk.js": "/tiny-leagues-online/static/js/488.af104311.chunk.js",
     "index.html": "/tiny-leagues-online/index.html",
     "main.7dfd0d94.css.map": "/tiny-leagues-online/static/css/main.7dfd0d94.css.map",
-    "main.f49316ba.js.map": "/tiny-leagues-online/static/js/main.f49316ba.js.map",
+    "main.c3d60e88.js.map": "/tiny-leagues-online/static/js/main.c3d60e88.js.map",
     "488.af104311.chunk.js.map": "/tiny-leagues-online/static/js/488.af104311.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.7dfd0d94.css",
-    "static/js/main.f49316ba.js"
+    "static/js/main.c3d60e88.js"
   ]
 }
