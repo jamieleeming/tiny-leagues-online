@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/tiny-leagues-online/static/css/main.7dfd0d94.css",
-    "main.js": "/tiny-leagues-online/static/js/main.1cf325f0.js",
-    "static/js/488.af104311.chunk.js": "/tiny-leagues-online/static/js/488.af104311.chunk.js",
-    "index.html": "/tiny-leagues-online/index.html",
-    "main.7dfd0d94.css.map": "/tiny-leagues-online/static/css/main.7dfd0d94.css.map",
-    "main.1cf325f0.js.map": "/tiny-leagues-online/static/js/main.1cf325f0.js.map",
-    "488.af104311.chunk.js.map": "/tiny-leagues-online/static/js/488.af104311.chunk.js.map"
+    "main.css": "/static/css/main.7dfd0d94.css",
+    "main.js": "/static/js/main.ae8d296f.js",
+    "static/js/488.af104311.chunk.js": "/static/js/488.af104311.chunk.js",
+    "index.html": "/index.html",
+    "main.7dfd0d94.css.map": "/static/css/main.7dfd0d94.css.map",
+    "main.ae8d296f.js.map": "/static/js/main.ae8d296f.js.map",
+    "488.af104311.chunk.js.map": "/static/js/488.af104311.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.7dfd0d94.css",
-    "static/js/main.1cf325f0.js"
+    "static/js/main.ae8d296f.js"
   ]
 }
