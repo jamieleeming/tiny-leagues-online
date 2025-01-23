@@ -31,25 +31,35 @@ function PokerLedger() {
                     return;
                 }
 
+                // Add collection existence check
                 const venmoCollection = collection(db, 'venmoIds');
                 const q = query(venmoCollection);
+                
+                console.log('Attempting to fetch documents...');
                 const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    console.log('No documents found in venmoIds collection');
+                    return;
+                }
                 
                 const venmoData = {};
                 querySnapshot.forEach((doc) => {
+                    console.log('Document found:', doc.id);
                     const data = doc.data();
                     if (data.playerName && data.venmoId) {
                         venmoData[data.playerName] = data.venmoId;
                     }
                 });
                 
+                console.log('Loaded Venmo data:', venmoData);
                 setPlayerVenmoMap(venmoData);
             } catch (error) {
-                console.error('Error loading Venmo IDs:', error);
-                console.error('Error details:', {
+                console.error('Error loading Venmo IDs:', {
                     message: error.message,
                     code: error.code,
-                    stack: error.stack
+                    stack: error.stack,
+                    name: error.name
                 });
                 setSaveMessage({ 
                     type: 'error', 
