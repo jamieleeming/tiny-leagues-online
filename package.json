@@ -42,5 +42,8 @@
       "last 1 safari version"
     ]
   },
-  "homepage": "https://jamieleeming.github.io/tiny-leagues-online"
+  "homepage": "https://jamieleeming.github.io/tiny-leagues-online",
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
+  }
 }

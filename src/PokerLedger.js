@@ -80,15 +80,18 @@ function PokerLedger() {
                 throw new Error('Invalid URL format. Please provide a valid Poker Now game URL.');
             }
 
-            // Use the proxy endpoint
-            const formattedUrl = `/api/games/${gameId}/players_sessions`;
-
-            const response = await fetch(formattedUrl, {
-                method: 'GET',
+            // Use your Render.com proxy
+            const proxyUrl = 'https://poker-proxy.onrender.com';
+            const pokerNowUrl = `https://www.pokernow.club/api/games/${gameId}/players_sessions`;
+            
+            const response = await fetch(proxyUrl, {
+                method: 'POST',
                 headers: {
-                    'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({
+                    url: pokerNowUrl
+                })
             });
 
             if (!response.ok) {
