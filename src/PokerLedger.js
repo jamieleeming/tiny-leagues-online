@@ -1,112 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { db } from './firebase';
 import { 
     collection, 
     doc, 
     setDoc, 
     getDocs,
-    query 
+    getDoc,
+    query,
+    where,
+    orderBy
 } from 'firebase/firestore';
+import { Header } from './components/Header';
+import { LeaguePassword } from './components/LeaguePassword';
+import { GameSelector } from './components/GameSelector';
+import { PlayerDetails } from './components/PlayerDetails';
+import { SessionResults } from './components/SessionResults';
+import { 
+    ThemeProvider, 
+    createTheme, 
+    CssBaseline, 
+    Container, 
+    Fade, 
+    Box, 
+    Alert, 
+    Snackbar, 
+    useMediaQuery 
+} from '@mui/material';
 
-function PokerLedger() {
-    const [url, setUrl] = useState('');
-    const [ledgerData, setLedgerData] = useState(null);
+// Move theme creation inside the component to access system preference
+const PokerLedger = () => {
+    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+    const [manualDarkMode, setManualDarkMode] = useState(null);
+    const isDarkMode = manualDarkMode ?? prefersDarkMode;
+
+    // Simplify theme to only what we're using
+    const theme = React.useMemo(
+        () =>
+            createTheme({
+                palette: {
+                    mode: isDarkMode ? 'dark' : 'light',
+                }
+            }),
+        [isDarkMode]
+    );
+
     const [error, setError] = useState(null);
     const [selectedPlayer, setSelectedPlayer] = useState('');
-    const [venmoId, setVenmoId] = useState('');
-    const [saveMessage, setSaveMessage] = useState(null);
-    const [playerVenmoMap, setPlayerVenmoMap] = useState({});
-
-    // Load Venmo IDs from Firebase on component mount
-    useEffect(() => {
-        const loadVenmoIds = async () => {
-            console.log('Starting to load Venmo IDs...');
-            try {
-                if (!db) {
-                    console.error('Firebase DB not initialized');
-                    setSaveMessage({ 
-                        type: 'error', 
-                        text: 'Database connection error' 
-                    });
-                    return;
-                }
-
-                // Add collection existence check
-                const venmoCollection = collection(db, 'venmoIds');
-                const q = query(venmoCollection);
-                
-                console.log('Attempting to fetch documents...');
-                const querySnapshot = await getDocs(q);
-                
-                if (querySnapshot.empty) {
-                    console.log('No documents found in venmoIds collection');
-                    return;
-                }
-                
-                const venmoData = {};
-                querySnapshot.forEach((doc) => {
-                    console.log('Document found:', doc.id);
-                    const data = doc.data();
-                    if (data.playerName && data.venmoId) {
-                        venmoData[data.playerName] = data.venmoId;
-                    }
-                });
-                
-                console.log('Loaded Venmo data:', venmoData);
-                setPlayerVenmoMap(venmoData);
-            } catch (error) {
-                console.error('Error loading Venmo IDs:', {
-                    message: error.message,
-                    code: error.code,
-                    stack: error.stack,
-                    name: error.name
-                });
-                setSaveMessage({ 
-                    type: 'error', 
-                    text: `Error loading saved Venmo IDs: ${error.message}` 
-                });
-            }
-        };
-
-        loadVenmoIds();
-    }, []);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            // Extract the game ID from the full URL
-            const gameId = url.split('/games/')[1]?.split('/')[0];
-            if (!gameId) {
-                throw new Error('Invalid URL format. Please provide a valid Poker Now game URL.');
-            }
-
-            // Use your Render.com proxy
-            const proxyUrl = 'https://poker-proxy.onrender.com';
-            const pokerNowUrl = `https://www.pokernow.club/api/games/${gameId}/players_sessions`;
-            
-            const response = await fetch(proxyUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    url: pokerNowUrl
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log('Received data:', data);
-            setLedgerData(data);
-            setError(null);
-        } catch (err) {
-            console.error('Fetch error:', err);
-            setError('Error fetching data: ' + err.message);
-            setLedgerData(null);
-        }
-    };
+    const [selectedLeague, setSelectedLeague] = useState('');
+    const [leagueError, setLeagueError] = useState(null);
+    const [isLeagueValidated, setIsLeagueValidated] = useState(false);
+    const [leagueGames, setLeagueGames] = useState([]);
+    const [selectedGame, setSelectedGame] = useState(null);
+    const [games, setGames] = useState([]);
+    const [venmoIds, setVenmoIds] = useState({});
+    const [isLoadingGames, setIsLoadingGames] = useState(false);
+    const [gamesError, setGamesError] = useState(null);
+    const [notification, setNotification] = useState(null);
+    const [showGameSelector, setShowGameSelector] = useState(false);
+    const [ledgerData, setLedgerData] = useState(null);
 
     const formatAmount = (amount) => {
         return new Intl.NumberFormat('en-US', {
@@ -118,44 +69,53 @@ function PokerLedger() {
     };
 
     const calculateSettlements = (playersInfos) => {
-        // Create arrays of debtors and creditors
-        let debtors = [];
-        let creditors = [];
+        // Skip if no players
+        if (!playersInfos || playersInfos.length === 0) {
+            return [];
+        }
 
-        Object.entries(playersInfos).forEach(([id, player]) => {
-            if (player.net < 0) {
-                debtors.push({ id, name: player.names[0], amount: -player.net });
-            } else if (player.net > 0) {
-                creditors.push({ id, name: player.names[0], amount: player.net });
-            }
-        });
-
-        // Sort by amount (largest first)
-        debtors.sort((a, b) => b.amount - a.amount);
-        creditors.sort((a, b) => b.amount - a.amount);
-
-        let settlements = [];
-
-        while (debtors.length > 0 && creditors.length > 0) {
-            const debtor = debtors[0];
-            const creditor = creditors[0];
-
-            const amount = Math.min(debtor.amount, creditor.amount);
+        // Sort players by net amount (descending)
+        const sortedPlayers = [...playersInfos].sort((a, b) => b.net - a.net);
+        
+        const settlements = [];
+        let i = 0;  // index for winners (from start)
+        let j = sortedPlayers.length - 1;  // index for losers (from end)
+        
+        while (i < j) {
+            const winner = sortedPlayers[i];
+            const loser = sortedPlayers[j];
+            
+            if (winner.net <= 0 || loser.net >= 0) break;  // No more settlements needed
+            
+            const amount = Math.min(winner.net, -loser.net);
             
             if (amount > 0) {
                 settlements.push({
-                    from: debtor.name,
-                    to: creditor.name,
+                    from: loser.name,
+                    to: winner.name,
                     amount: amount
                 });
+                
+                winner.net -= amount;
+                loser.net += amount;
             }
-
-            debtor.amount -= amount;
-            creditor.amount -= amount;
-
-            if (debtor.amount === 0) debtors.shift();
-            if (creditor.amount === 0) creditors.shift();
+            
+            if (winner.net === 0) i++;
+            if (loser.net === 0) j--;
         }
+
+        // Verify settlements
+        const totalToSettle = playersInfos.reduce((sum, player) => 
+            player.net > 0 ? sum + player.net : sum, 0);
+        
+        const settledAmount = settlements.reduce((sum, settlement) => 
+            sum + settlement.amount, 0);
+        
+        console.log('Settlement verification:', {
+            totalToSettle,
+            settledAmount,
+            difference: totalToSettle - settledAmount
+        });
 
         return settlements;
     };
@@ -164,310 +124,446 @@ function PokerLedger() {
         const playerId = e.target.value;
         setSelectedPlayer(playerId);
         
-        // Get player name from ledgerData
-        if (playerId && ledgerData) {
-            const playerName = ledgerData.playersInfos[playerId].names[0];
-            setVenmoId(playerVenmoMap[playerName] ? `@${playerVenmoMap[playerName]}` : '');
-        } else {
-            setVenmoId('');
-        }
+        // No need to update venmoIds here anymore since we're using player IDs as keys
     };
 
-    const handleVenmoIdChange = (e) => {
-        setVenmoId(e.target.value);
+    const fetchVenmoIds = async (playersInfos) => {
+        if (!playersInfos) return;
+        
+        try {
+            const venmoData = {};
+            for (const player of playersInfos) {
+                const venmoDoc = await getDoc(doc(db, 'venmoIds', player.id));
+                if (venmoDoc.exists()) {
+                    // Store using player ID as key instead of name
+                    venmoData[player.id] = venmoDoc.data().venmoId;
+                }
+            }
+            setVenmoIds(venmoData);
+        } catch (error) {
+            console.error('Error fetching Venmo IDs:', error);
+        }
     };
 
     const handleSaveSettings = async () => {
         if (!selectedPlayer) {
-            setSaveMessage({ type: 'error', text: 'Please select a player first' });
-            return;
-        }
-        if (!venmoId) {
-            setSaveMessage({ type: 'error', text: 'Please enter your Venmo ID' });
+            setError('Please select a player first');
             return;
         }
 
         // Additional validation
         const venmoIdRegex = /^@?[\w.-]+$/;
+        const venmoId = venmoIds[selectedPlayer] || '';
         if (!venmoIdRegex.test(venmoId)) {
-            setSaveMessage({ type: 'error', text: 'Invalid Venmo ID format' });
-            return;
-        }
-
-        // Rate limiting in the client
-        const lastUpdateTime = localStorage.getItem('lastUpdateTime');
-        const now = Date.now();
-        if (lastUpdateTime && now - parseInt(lastUpdateTime) < 10000) {
-            setSaveMessage({ type: 'error', text: 'Please wait a few seconds before trying again' });
+            setError('Invalid Venmo ID format');
             return;
         }
 
         try {
-            const playerName = ledgerData.playersInfos[selectedPlayer].names[0];
-            const cleanVenmoId = venmoId.replace('@', '');
+            // Find the player in the playersInfos array
+            const player = selectedGame.playersInfos.find(p => p.id === selectedPlayer);
+            if (!player) {
+                throw new Error('Selected player not found');
+            }
+
+            const playerName = player.name;
+            if (!playerName) {
+                throw new Error('Player name not found');
+            }
+
+            if (!db) {
+                throw new Error('Firebase database not initialized');
+            }
 
             // Save to Firebase
             await setDoc(doc(db, 'venmoIds', selectedPlayer), {
                 playerName: playerName,
                 pokerNowId: selectedPlayer,
-                venmoId: cleanVenmoId,
+                venmoId: venmoId,
                 updatedAt: new Date().toISOString()
             });
 
-            // Update local rate limit
-            localStorage.setItem('lastUpdateTime', now.toString());
-
-            // Update local state
-            setPlayerVenmoMap(prev => ({
+            // Update local state immediately using player ID as key
+            setVenmoIds(prev => ({
                 ...prev,
-                [playerName]: cleanVenmoId
+                [selectedPlayer]: venmoId
             }));
 
-            setSaveMessage({ type: 'success', text: 'Settings saved successfully!' });
-            setTimeout(() => {
-                setSaveMessage(null);
-            }, 3000);
-        } catch (error) {
-            console.error('Error saving Venmo ID:', error);
-            setSaveMessage({ 
-                type: 'error', 
-                text: 'Error saving settings. Please try again.' 
+            // Add success notification
+            setNotification({
+                type: 'success',
+                message: 'Venmo ID saved successfully!'
             });
+
+            // Clear any existing errors
+            setError(null);
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            setError('Failed to save settings. Please try again.');
         }
     };
 
-    const getSortedPlayers = (playersInfos) => {
-        return Object.entries(playersInfos)
-            .sort((a, b) => a[1].names[0].localeCompare(b[1].names[0]))
-            .map(([id, player]) => ({
-                id,
-                name: player.names[0]
-            }));
+    const getSortedPlayers = (ledgerData) => {
+        if (!ledgerData?.playersInfos) return [];
+        return [...ledgerData.playersInfos].sort((a, b) => (b.stack || 0) - (a.stack || 0));
     };
 
-    const getSortedResults = (playersInfos) => {
-        return Object.entries(playersInfos)
-            .sort((a, b) => b[1].net - a[1].net)
-            .map(([id, player]) => ({
-                id,
-                name: player.names[0],
-                buyIn: player.buyInSum,
-                cashOut: player.buyOutSum,
-                net: player.net
-            }));
+    const getSortedResults = (players) => {
+        if (!players || !Array.isArray(players)) return [];
+        return players.map(player => ({
+            name: player.name || '',
+            stack: player.stack || 0,
+            totalBuyIn: player.totalBuyIn || 0,
+            net: (player.stack || 0) - (player.totalBuyIn || 0)
+        })).sort((a, b) => b.net - a.net);
     };
 
     const getPlayerNameById = (playersInfos, id) => {
         return playersInfos[id]?.names[0] || '';
     };
 
-    const handleSettleUp = (settlement) => {
-        // Get the recipient's Venmo ID from the mapping
-        const recipientVenmoId = playerVenmoMap[settlement.to];
+    const handleSettleUp = (settlement, isRequest = false) => {
+        const player = isRequest ? settlement.from : settlement.to;
+        const recipientVenmoId = venmoIds[player.id];
         
         if (!recipientVenmoId) {
-            alert(`No Venmo ID saved for ${settlement.to}. Please ask them to set up their Venmo ID.`);
+            setNotification({
+                type: 'error',
+                message: `No Venmo ID saved for ${player.name}. Please ask them to set up their Venmo ID.`
+            });
             return;
         }
 
-        // Convert amount from cents to dollars
         const cleanAmount = (settlement.amount / 100).toFixed(2);
-        
-        // Construct the Venmo URL
-        const venmoUrl = `https://venmo.com/${recipientVenmoId}?txn=pay&note=TL%20Online&amount=${cleanAmount}`;
-        
-        // Open in new tab
+        const venmoUrl = `https://venmo.com/${recipientVenmoId}?txn=${isRequest ? 'request' : 'pay'}&note=TL%20Online&amount=${cleanAmount}`;
         window.open(venmoUrl, '_blank');
     };
 
-    return (
-        <div className="poker-ledger">
-            <nav className="navbar">
-                <div className="navbar-content">
-                    <div className="navbar-brand">
-                        <svg 
-                            className="navbar-logo" 
-                            viewBox="0 0 40 40" 
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            {/* Circle background */}
-                            <circle 
-                                cx="20" 
-                                cy="20" 
-                                r="18" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                strokeWidth="4"
-                            />
-                            
-                            {/* Letters "TL" with increased weight */}
-                            <text
-                                x="20"
-                                y="25"
-                                fontSize="16"
-                                fontWeight="900"
-                                fill="currentColor"
-                                textAnchor="middle"
-                                fontFamily="Arial Black, Arial, sans-serif"
-                            >
-                                TL
-                            </text>
-                        </svg>
-                        <h1>Tiny Leagues Online</h1>
-                    </div>
-                    {/* Add more nav items here in the future */}
-                </div>
-            </nav>
+    const processCSVData = (data) => {
+        const playerMap = new Map();
+
+        data.forEach((row, index) => {
+            const playerName = row.player_nickname?.replace(/^"|"$/g, '').trim();
+            const playerId = row.player_id;
             
-            <div className="main-content">
-                <div className="search-form">
-                    <input
-                        type="text"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        placeholder="Enter your Poker Now game URL"
-                    />
-                    <button type="submit" onClick={handleSubmit}>Analyze Session</button>
-                </div>
+            if (!playerName || !playerId) {
+                return;
+            }
 
-                {error && <div className="error">⚠️ {error}</div>}
-                
-                {ledgerData && (
-                    <div className="ledger-table">
-                        <h2>Player Settings</h2>
-                        <div className="settings-content">
-                            <div className="settings-group">
-                                <label htmlFor="playerSelect">Select your player name:</label>
-                                <select 
-                                    id="playerSelect"
-                                    value={selectedPlayer}
-                                    onChange={handlePlayerSelect}
-                                >
-                                    <option value="">Select player...</option>
-                                    {getSortedPlayers(ledgerData.playersInfos).map(player => (
-                                        <option key={player.id} value={player.id}>
-                                            {player.name}
-                                        </option>
-                                    ))}
-                                </select>
+            if (!playerMap.has(playerId)) {
+                playerMap.set(playerId, {
+                    id: playerId,
+                    name: playerName,
+                    totalBuyIn: 0,
+                    totalCashOut: 0,
+                    net: 0,
+                    buyIns: [],
+                    cashOuts: [],
+                    stacks: []
+                });
+            }
 
-                                <label htmlFor="venmoId">Your Venmo ID:</label>
-                                <input
-                                    id="venmoId"
-                                    type="text"
-                                    value={venmoId}
-                                    onChange={handleVenmoIdChange}
-                                    placeholder="@your-venmo-id"
+            const player = playerMap.get(playerId);
+
+            const buyIn = parseInt(row.buy_in || 0);
+            const cashOut = parseInt(row.buy_out || 0);
+            const stack = parseInt(row.stack || 0);
+
+            player.buyIns.push(buyIn);
+            player.cashOuts.push(cashOut);
+            player.stacks.push(stack);
+        });
+
+        for (const player of playerMap.values()) {
+            player.totalBuyIn = player.buyIns.reduce((sum, value) => sum + value, 0);
+            const totalCashOut = player.cashOuts.reduce((sum, value) => sum + value, 0);
+            const totalStack = player.stacks.reduce((sum, value) => sum + value, 0);
+            player.totalCashOut = totalCashOut + totalStack;
+            player.net = player.totalCashOut - player.totalBuyIn;
+
+            delete player.buyIns;
+            delete player.cashOuts;
+            delete player.stacks;
+        }
+
+        const playersArray = Array.from(playerMap.values());
+
+        return playersArray;
+    };
+
+    const processFile = async (file) => {
+        try {
+            const filename = file.name;
+            const gameIdMatch = filename.match(/^ledger_(.+?)(?: \(\d+\))?\.csv$/);
+            
+            if (!gameIdMatch) {
+                throw new Error('Invalid filename format. Expected: ledger_GAMEID.csv or ledger_GAMEID (N).csv');
+            }
+            
+            const gameId = gameIdMatch[1];
+
+            const text = await file.text();
+            const rows = text.split('\n').map(row => row.split(','));
+            const headers = rows[0];
+            
+            const sessionStartIndex = headers.findIndex(header => 
+                header.trim().toLowerCase() === 'session_start_at'
+            );
+
+            if (sessionStartIndex === -1) {
+                throw new Error('Could not find session_start_at column in CSV');
+            }
+
+            const sessionDates = rows.slice(1)
+                .map(row => row[sessionStartIndex])
+                .filter(date => date && date.trim())
+                .map(date => new Date(date.trim()));
+
+            const earliestDate = new Date(Math.min(...sessionDates));
+
+            if (isNaN(earliestDate.getTime())) {
+                throw new Error('Invalid date format in session_start_at column');
+            }
+
+            const data = rows.slice(1).map(row => {
+                const rowData = {};
+                headers.forEach((header, index) => {
+                    const headerKey = header.trim().toLowerCase();
+                    rowData[headerKey] = row[index]?.trim();
+                });
+                return rowData;
+            });
+
+            const playersInfos = processCSVData(data);
+
+            const settlements = calculateSettlements(playersInfos);
+
+            const gameData = {
+                gameId: gameId,
+                leagueId: selectedLeague,
+                createdAt: earliestDate.toISOString(),
+                updatedAt: new Date().toISOString(),
+                playersInfos: playersInfos,
+                settlements: settlements
+            };
+
+            const gameRef = doc(db, 'leagues', selectedLeague, 'games', gameId);
+            await setDoc(gameRef, gameData);
+            
+            await fetchLeagueGames();
+        } catch (error) {
+            console.error('Error processing file:', error);
+            alert(`Error uploading file: ${error.message}`);
+        }
+    };
+
+    const players = getSortedPlayers(selectedGame);
+    const results = getSortedResults(players);
+
+    const validateLeague = async () => {
+        if (!selectedLeague) return;
+
+        try {
+            const leagueRef = doc(db, 'leagues', selectedLeague);
+            const leagueDoc = await getDoc(leagueRef);
+
+            if (leagueDoc.exists()) {
+                setIsLeagueValidated(true);
+                setLeagueError(null);
+                await fetchLeagueGames();
+            } else {
+                setLeagueError('Invalid league ID');
+                setIsLeagueValidated(false);
+            }
+        } catch (error) {
+            console.error('Error in validateLeague:', error);
+            setLeagueError('Error validating league');
+            setIsLeagueValidated(false);
+        }
+    };
+
+    // Add this function to fetch games when a league is validated
+    const fetchLeagueGames = async () => {
+        if (!selectedLeague || !isLeagueValidated) return;
+        
+        try {
+            const gamesRef = collection(db, 'leagues', selectedLeague, 'games');
+            const gamesSnapshot = await getDocs(gamesRef);
+            
+            const gamesData = gamesSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            
+            // Sort games by createdAt date, most recent first
+            gamesData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            setLeagueGames(gamesData);
+            setGames(gamesData);
+        } catch (error) {
+            console.error('Error fetching league games:', error);
+            setGamesError('Failed to load league games');
+        }
+    };
+
+    // Add this to your validateLeagueCode function, after validation succeeds
+    useEffect(() => {
+        if (isLeagueValidated && selectedLeague) {
+            fetchLeagueGames();
+        } else {
+            setLeagueGames([]);
+        }
+    }, [isLeagueValidated, selectedLeague]);
+
+    const fetchGames = async () => {
+        if (!selectedLeague) return;
+        
+        try {
+            const leagueRef = doc(db, 'leagues', selectedLeague);
+            const gamesCollectionRef = collection(leagueRef, 'games');
+            const gamesSnapshot = await getDocs(gamesCollectionRef);
+            
+            // Just map and sort the games, no filtering
+            const gamesData = gamesSnapshot.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }))
+                .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+            
+            setGames(gamesData);
+        } catch (error) {
+            console.error('Error fetching games:', error);
+            setGamesError('Failed to load games');
+        }
+    };
+
+    // Add this handler to close the notification
+    const handleCloseNotification = () => {
+        setNotification(null);
+    };
+
+    const handleValidationComplete = () => {
+        setShowGameSelector(true);
+    };
+
+    useEffect(() => {
+        setSelectedGame(null);
+        setSelectedPlayer('');
+    }, [selectedLeague]);
+
+    // Also call fetchVenmoIds when a game is selected
+    useEffect(() => {
+        if (selectedGame?.playersInfos) {
+            fetchVenmoIds(selectedGame.playersInfos);
+        }
+    }, [selectedGame]);
+
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                <Header 
+                    isDarkMode={isDarkMode}
+                    onToggleDarkMode={() => setManualDarkMode(prev => 
+                        prev === null ? !prefersDarkMode : !prev
+                    )}
+                />
+                <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flex: 1 }}>
+                    <Box sx={{ position: 'relative' }}>
+                        <Box sx={{ position: 'absolute', width: '100%' }}>
+                            <LeaguePassword 
+                                selectedLeague={selectedLeague}
+                                setSelectedLeague={setSelectedLeague}
+                                isLeagueValidated={isLeagueValidated}
+                                setIsLeagueValidated={setIsLeagueValidated}
+                                leagueError={leagueError}
+                                setLeagueError={setLeagueError}
+                                validateLeague={validateLeague}
+                                onValidationComplete={handleValidationComplete}
+                            />
+                        </Box>
+                        
+                        <Fade 
+                            in={showGameSelector} 
+                            timeout={{
+                                enter: 300,
+                                exit: 300
+                            }}
+                            style={{ 
+                                transitionDelay: showGameSelector ? '200ms' : '0ms'
+                            }}
+                            unmountOnExit
+                        >
+                            <div>
+                                <GameSelector 
+                                    selectedGame={selectedGame}
+                                    games={games}
+                                    setSelectedGame={setSelectedGame}
+                                    setLedgerData={setLedgerData}
+                                    processFile={processFile}
+                                    selectedLeague={selectedLeague}
+                                    refreshGames={fetchGames}
+                                    isLoadingGames={isLoadingGames}
+                                    gamesError={gamesError}
+                                    setVenmoIds={setVenmoIds}
+                                    setSelectedPlayer={setSelectedPlayer}
                                 />
-
-                                <button onClick={handleSaveSettings} className="save-button">
-                                    Save Settings
-                                </button>
+                                <Fade 
+                                    in={Boolean(selectedGame)} 
+                                    unmountOnExit
+                                    timeout={500}
+                                >
+                                    <div>
+                                        <PlayerDetails 
+                                            selectedPlayer={selectedPlayer}
+                                            setSelectedPlayer={setSelectedPlayer}
+                                            ledgerData={ledgerData}
+                                            venmoIds={venmoIds}
+                                        />
+                                    </div>
+                                </Fade>
+                                <Fade 
+                                    in={Boolean(selectedPlayer)} 
+                                    unmountOnExit
+                                    timeout={500}
+                                >
+                                    <div>
+                                        <SessionResults 
+                                            ledgerData={ledgerData}
+                                            formatAmount={formatAmount}
+                                            selectedGame={selectedGame}
+                                            selectedPlayer={selectedPlayer}
+                                            onSettleUp={handleSettleUp}
+                                        />
+                                    </div>
+                                </Fade>
                             </div>
-                            
-                            {saveMessage && (
-                                <span className={`save-message ${saveMessage.type}`}>
-                                    {saveMessage.text}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {selectedPlayer && ledgerData && (
-                    <>
-                        <div className="ledger-table">
-                            <h2>Session Results</h2>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Player</th>
-                                        <th>Buy In</th>
-                                        <th>Cash Out</th>
-                                        <th>Net P/L</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {getSortedResults(ledgerData.playersInfos).map(player => (
-                                        <tr 
-                                            key={player.id}
-                                            className={player.id === selectedPlayer ? 'selected-player' : ''}
-                                        >
-                                            <td>{player.name}</td>
-                                            <td>{formatAmount(player.buyIn)}</td>
-                                            <td>{formatAmount(player.cashOut)}</td>
-                                            <td className={player.net > 0 ? 'profit' : player.net < 0 ? 'loss' : ''}>
-                                                {formatAmount(player.net)}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td>Total</td>
-                                        <td>{formatAmount(ledgerData.buyInTotal)}</td>
-                                        <td>{formatAmount(ledgerData.buyOutTotal)}</td>
-                                        <td>{formatAmount(ledgerData.buyOutTotal - ledgerData.buyInTotal)}</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-
-                        <div className="ledger-table">
-                            <h2>Settlement</h2>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>From</th>
-                                        <th></th>
-                                        <th>To</th>
-                                        <th>Amount</th>
-                                        <th>Venmo</th>
-                                        <th>Settle Up</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {calculateSettlements(ledgerData.playersInfos).map((settlement, index) => {
-                                        const recipientVenmoId = playerVenmoMap[settlement.to];
-                                        return (
-                                            <tr 
-                                                key={index}
-                                                className={ledgerData.playersInfos[selectedPlayer]?.names[0] === settlement.from ? 'selected-player' : ''}
-                                            >
-                                                <td>{settlement.from}</td>
-                                                <td className="arrow-cell">→</td>
-                                                <td>{settlement.to}</td>
-                                                <td>${Math.abs(settlement.amount / 100).toFixed(2)}</td>
-                                                <td className="venmo-status">
-                                                    {recipientVenmoId ? `@${recipientVenmoId}` : 'Not set'}
-                                                </td>
-                                                <td>
-                                                    {ledgerData.playersInfos[selectedPlayer]?.names[0] === settlement.from && (
-                                                        <button 
-                                                            onClick={() => handleSettleUp(settlement)} 
-                                                            disabled={!recipientVenmoId}
-                                                        >
-                                                            Settle Up
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </>
-                )}
-
-                {!selectedPlayer && ledgerData && (
-                    <div className="select-player-message">
-                        Please select your player name above to view session results and settlements.
-                    </div>
-                )}
+                        </Fade>
+                    </Box>
+                </Container>
+                
+                {/* Add this near the end of your JSX, before the closing ThemeProvider */}
+                <Snackbar 
+                    open={Boolean(notification)} 
+                    autoHideDuration={6000} 
+                    onClose={handleCloseNotification}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                >
+                    {notification && (
+                        <Alert 
+                            onClose={handleCloseNotification} 
+                            severity={notification.type}
+                            variant="filled"
+                            sx={{ width: '100%' }}
+                        >
+                            {notification.message}
+                        </Alert>
+                    )}
+                </Snackbar>
             </div>
-        </div>
+        </ThemeProvider>
     );
-}
+};
 
 export default PokerLedger;

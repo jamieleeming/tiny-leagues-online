@@ -1,0 +1,29 @@
+.settlements {
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.settlements h2 {
+    margin: 0 0 1rem 0;
+    color: #333;
+}
+
+.settlements table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.settlements th,
+.settlements td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.settlements th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+} 
