@@ -44,10 +44,6 @@ export const GameSelector = ({
         })
         .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
 
-    // Log for debugging
-    console.log('Number of games after filtering:', sortedGames.length);
-    console.log('Filter date:', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-
     const handleGameClick = async (game) => {
         // Reset all states first
         resetGameSelection();
@@ -60,7 +56,6 @@ export const GameSelector = ({
         try {
             const gameDoc = await getDoc(doc(db, 'leagues', selectedLeague, 'games', game.id));
             if (!gameDoc.exists()) {
-                console.error('Game document not found');
                 return;
             }
 
@@ -68,8 +63,6 @@ export const GameSelector = ({
                 id: gameDoc.id,
                 ...gameDoc.data()
             };
-
-            console.log('Selected game data:', gameData);
 
             // Set new game data after resetting states
             setSelectedGame(gameData);
@@ -87,13 +80,12 @@ export const GameSelector = ({
                         venmoData[playerId] = venmoDoc.data().venmoId;
                     }
                 } catch (err) {
-                    console.error(`Error fetching Venmo ID for player ${playerId}:`, err);
+                    // Silently fail for individual Venmo ID fetches
                 }
             }
 
             setVenmoIds(venmoData);
         } catch (err) {
-            console.error('Error selecting game:', err);
             setVenmoIds({});
         }
     };
@@ -110,7 +102,6 @@ export const GameSelector = ({
                 hour12: true
             });
         } catch (error) {
-            console.error('Error formatting date:', error);
             return 'Invalid Date';
         }
     };
