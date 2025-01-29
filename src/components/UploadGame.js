@@ -4,20 +4,35 @@ import {
     Button,
     Snackbar,
     Alert,
-    CircularProgress
+    CircularProgress,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    FormControl,
+    FormGroup,
+    FormControlLabel,
+    Checkbox,
+    Typography,
+    Divider,
+    Radio
 } from '@mui/material';
 import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
-import { collection, setDoc, doc } from 'firebase/firestore';
+import { collection, setDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Papa from 'papaparse';
 
-export const UploadGame = ({ selectedLeague, refreshGames }) => {
+export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }) => {
     const fileInputRef = useRef(null);
     const [isUploading, setIsUploading] = useState(false);
     const [notification, setNotification] = useState({ open: false, message: '', severity: 'info' });
+    const [showDuplicatesModal, setShowDuplicatesModal] = useState(false);
+    const [potentialDuplicates, setPotentialDuplicates] = useState([]);
+    const [selectedDuplicates, setSelectedDuplicates] = useState({});
+    const [selectedNames, setSelectedNames] = useState({});
+    const [parsedData, setParsedData] = useState(null);
 
     const resetUploadState = () => {
-        // Reset the file input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -25,38 +40,30 @@ export const UploadGame = ({ selectedLeague, refreshGames }) => {
     };
 
     const extractGameId = (filename) => {
-        // Extract gameId from "ledger_XXXX.csv" or "ledger_XXXX (1).csv"
         const match = filename.match(/ledger_([^.(\s]+)/);
         return match ? match[1] : null;
     };
 
     const calculateSettlements = (sessionResults) => {
-        // Sort players by net amount (descending)
         const sortedPlayers = [...sessionResults].sort((a, b) => b.net - a.net);
         const settlements = [];
 
-        let i = 0;  // index for winners (from start)
-        let j = sortedPlayers.length - 1;  // index for losers (from end)
+        let i = 0;
+        let j = sortedPlayers.length - 1;
 
         while (i < j) {
             const winner = sortedPlayers[i];
             const loser = sortedPlayers[j];
 
-            if (winner.net <= 0) break; // No more winners
-            if (loser.net >= 0) break;  // No more losers
+            if (winner.net <= 0) break;
+            if (loser.net >= 0) break;
 
             const amount = Math.min(winner.net, -loser.net);
             
             settlements.push({
                 amount,
-                from: {
-                    id: loser.id,
-                    name: loser.name
-                },
-                to: {
-                    id: winner.id,
-                    name: winner.name
-                },
+                from: { id: loser.id, name: loser.name },
+                to: { id: winner.id, name: winner.name },
                 status: 'pending'
             });
 
@@ -67,43 +74,162 @@ export const UploadGame = ({ selectedLeague, refreshGames }) => {
             if (loser.net === 0) j--;
         }
 
-        // Log settlements for verification
-        console.log('Calculated settlements:', settlements.map(s => ({
-            amount: s.amount,
-            from: `${s.from.name} (${s.from.id})`,
-            to: `${s.to.name} (${s.to.id})`
-        })));
-
         return settlements;
     };
 
-    const processCSV = async (file) => {
+    const findPotentialDuplicates = (data) => {
+        const normalizedGroups = data.reduce((groups, row) => {
+            const variations = [
+                row.player_nickname.trim().toLowerCase(),
+                row.player_nickname.trim().toLowerCase().replace(/\s+/g, ''),
+                row.player_nickname.trim().toLowerCase().replace(/[0-9]/g, ''),
+                row.player_nickname.trim().toLowerCase().replace(/[\s0-9]/g, ''),
+            ];
+
+            variations.forEach(variant => {
+                if (!groups[variant]) {
+                    groups[variant] = [];
+                }
+                if (!groups[variant].find(p => p.player_id === row.player_id)) {
+                    groups[variant].push({
+                        player_id: row.player_id,
+                        player_nickname: row.player_nickname.trim(),
+                        normalized: variant
+                    });
+                }
+            });
+            return groups;
+        }, {});
+
+        const potentialDuplicates = new Map();
+        
+        Object.values(normalizedGroups).forEach(group => {
+            if (group.length > 1) {
+                const key = group.map(p => p.player_id).sort().join('|');
+                if (!potentialDuplicates.has(key)) {
+                    potentialDuplicates.set(key, group);
+                }
+            }
+        });
+
+        return Array.from(potentialDuplicates.values());
+    };
+
+    const handleDuplicateSelection = (groupIndex, playerId, checked) => {
+        setSelectedDuplicates(prev => ({
+            ...prev,
+            [groupIndex]: {
+                ...prev[groupIndex],
+                [playerId]: checked
+            }
+        }));
+    };
+
+    const handleNameSelection = (groupIndex, name) => {
+        setSelectedNames(prev => ({
+            ...prev,
+            [groupIndex]: name
+        }));
+    };
+
+    const processDuplicates = async () => {
+        const idMappings = {};
+        const nameMapping = {};
+        
+        for (const [groupIndex, selections] of Object.entries(selectedDuplicates)) {
+            const selectedIds = Object.entries(selections)
+                .filter(([_, isSelected]) => isSelected)
+                .map(([id]) => id);
+            
+            if (selectedIds.length > 1) {
+                try {
+                    const venmoPromises = selectedIds.map(async (playerId) => {
+                        const venmoDoc = await getDoc(doc(db, 'venmo_ids', playerId));
+                        return {
+                            playerId,
+                            hasVenmo: venmoDoc.exists(),
+                            venmoData: venmoDoc.data()
+                        };
+                    });
+                    
+                    const venmoResults = await Promise.all(venmoPromises);
+                    const playerWithVenmo = venmoResults.find(result => result.hasVenmo);
+                    const primaryId = playerWithVenmo ? playerWithVenmo.playerId : selectedIds[0];
+                    
+                    if (selectedNames[groupIndex]) {
+                        nameMapping[primaryId] = selectedNames[groupIndex];
+                    }
+                    
+                    selectedIds
+                        .filter(id => id !== primaryId)
+                        .forEach(id => {
+                            idMappings[id] = primaryId;
+                        });
+                } catch (error) {
+                    const primaryId = selectedIds[0];
+                    if (selectedNames[groupIndex]) {
+                        nameMapping[primaryId] = selectedNames[groupIndex];
+                    }
+                    selectedIds.slice(1).forEach(id => {
+                        idMappings[id] = primaryId;
+                    });
+                }
+            }
+        }
+
+        const processedData = parsedData.map(row => {
+            const mappedId = idMappings[row.player_id];
+            if (mappedId) {
+                return {
+                    ...row,
+                    player_id: mappedId,
+                    player_nickname: nameMapping[mappedId] || row.player_nickname
+                };
+            }
+            if (nameMapping[row.player_id]) {
+                return {
+                    ...row,
+                    player_nickname: nameMapping[row.player_id]
+                };
+            }
+            return row;
+        });
+
+        processCSV(processedData);
+        setShowDuplicatesModal(false);
+    };
+
+    const processCSV = async (fileOrData) => {
         setIsUploading(true);
         try {
-            // Extract game ID from filename
-            const gameId = extractGameId(file.name);
+            let gameId;
+            let data;
+
+            if (Array.isArray(fileOrData)) {
+                data = fileOrData;
+                gameId = extractGameId(fileInputRef.current.files[0].name);
+            } else {
+                gameId = extractGameId(fileOrData.name);
+                const text = await fileOrData.text();
+                const results = Papa.parse(text, { 
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: (header) => header.trim()
+                });
+
+                if (results.errors.length > 0) {
+                    throw new Error(`CSV parsing errors: ${results.errors.map(e => e.message).join(', ')}`);
+                }
+                data = results.data;
+            }
+
             if (!gameId) {
                 throw new Error('Invalid file name format. Expected: ledger_GAMEID.csv');
             }
 
-            const text = await file.text();
-            const results = Papa.parse(text, { 
-                header: true,
-                skipEmptyLines: true,
-                transformHeader: (header) => header.trim()
-            });
-
-            console.log('Raw CSV data:', results.data);
-
-            if (results.errors.length > 0) {
-                throw new Error(`CSV parsing errors: ${results.errors.map(e => e.message).join(', ')}`);
-            }
-
-            // Process session results
             const playerMap = new Map();
 
-            // First pass: collect first nickname for each player and initialize totals
-            results.data.forEach(row => {
+            data.forEach(row => {
                 if (row.player_id && !playerMap.has(row.player_id)) {
                     playerMap.set(row.player_id, {
                         id: row.player_id,
@@ -114,58 +240,30 @@ export const UploadGame = ({ selectedLeague, refreshGames }) => {
                 }
             });
 
-            // Second pass: sum up the values
-            results.data.forEach(row => {
+            data.forEach(row => {
                 if (!row.player_id || !playerMap.has(row.player_id)) return;
 
                 const player = playerMap.get(row.player_id);
-                
-                // Parse values, ensuring we handle negative numbers correctly
                 const buyIn = parseInt(row.buy_in.replace(/[^\d-]/g, '')) || 0;
                 const buyOut = parseInt(row.buy_out.replace(/[^\d-]/g, '')) || 0;
                 const stack = parseInt(row.stack.replace(/[^\d-]/g, '')) || 0;
 
                 player.buyIn += buyIn;
-                player.cashOut += (buyOut || stack); // Use stack if buy_out is 0
+                player.cashOut += (buyOut || stack);
             });
 
-            // Create final session results with calculated net values
-            const sessionResults = Array.from(playerMap.values()).map(player => {
-                // Calculate net explicitly
-                const calculatedNet = player.cashOut - player.buyIn;
-                
-                console.log(`Calculating net for ${player.name}:`, {
-                    buyIn: player.buyIn,
-                    cashOut: player.cashOut,
-                    calculatedNet: calculatedNet,
-                    calculation: `${player.cashOut} - ${player.buyIn} = ${calculatedNet}`
-                });
+            const sessionResults = Array.from(playerMap.values()).map(player => ({
+                id: player.id,
+                name: player.name,
+                buyIn: player.buyIn,
+                cashOut: player.cashOut,
+                net: player.cashOut - player.buyIn
+            }));
 
-                return {
-                    id: player.id,
-                    name: player.name,
-                    buyIn: player.buyIn,
-                    cashOut: player.cashOut,
-                    net: calculatedNet  // Use the calculated net value
-                };
-            });
-
-            // Verify the results immediately after creation
-            console.log('Verifying session results:', 
-                sessionResults.map(player => ({
-                    name: player.name,
-                    buyIn: player.buyIn,
-                    cashOut: player.cashOut,
-                    net: player.net,
-                    verifyNet: player.cashOut - player.buyIn
-                }))
-            );
-
-            // Find start and end times
             let startTime = null;
             let endTime = null;
 
-            results.data.forEach(row => {
+            data.forEach(row => {
                 if (row.session_start_at) {
                     const currentStart = new Date(row.session_start_at);
                     if (!startTime || currentStart < startTime) {
@@ -180,10 +278,8 @@ export const UploadGame = ({ selectedLeague, refreshGames }) => {
                 }
             });
 
-            // Calculate settlements
             const settlements = calculateSettlements([...sessionResults]);
 
-            // Create game document with explicit net values
             const gameData = {
                 id: gameId,
                 createdAt: new Date().toISOString(),
@@ -191,33 +287,22 @@ export const UploadGame = ({ selectedLeague, refreshGames }) => {
                 startTime: startTime ? startTime.toISOString() : null,
                 endTime: endTime ? endTime.toISOString() : null,
                 leagueId: selectedLeague,
-                sessionResults: sessionResults.map(player => {
-                    const calculatedNet = player.cashOut - player.buyIn;
-                    return {
-                        id: player.id,
-                        name: player.name,
-                        buyIn: player.buyIn,
-                        cashOut: player.cashOut,
-                        net: calculatedNet  // Explicitly calculate and include net
-                    };
-                }),
+                sessionResults,
                 settlements
             };
 
-            // Verify the final data structure
-            console.log('Verifying final gameData:', {
-                id: gameData.id,
-                sessionResults: gameData.sessionResults.map(player => ({
-                    name: player.name,
-                    buyIn: player.buyIn,
-                    cashOut: player.cashOut,
-                    net: player.net,
-                    verifyCalculation: `${player.cashOut} - ${player.buyIn} = ${player.net}`
-                }))
-            });
-
-            // Save to Firestore using the game ID from filename
             await setDoc(doc(db, 'leagues', selectedLeague, 'games', gameId), gameData);
+
+            // Reset all states and refresh data
+            resetUploadState();
+            setSelectedDuplicates({});
+            setSelectedNames({});
+            setPotentialDuplicates([]);
+            setParsedData(null);
+            
+            // Reset selected game and refresh games list
+            onResetSelectedGame?.();
+            await refreshGames();
 
             setNotification({
                 open: true,
@@ -225,13 +310,7 @@ export const UploadGame = ({ selectedLeague, refreshGames }) => {
                 severity: 'success'
             });
 
-            // Reset the upload state
-            resetUploadState();
-            
-            // Refresh the games list
-            refreshGames();
         } catch (error) {
-            console.error('Error processing file:', error);
             setNotification({
                 open: true,
                 message: error.message || 'Error processing file',
@@ -241,15 +320,42 @@ export const UploadGame = ({ selectedLeague, refreshGames }) => {
         }
     };
 
-    const handleFileChange = (event) => {
+    const handleFileChange = async (event) => {
         const file = event.target.files[0];
-        if (file) {
-            processCSV(file);
-        }
-    };
+        if (!file) return;
+        
+        setIsUploading(true);
 
-    const handleCloseNotification = () => {
-        setNotification({ ...notification, open: false });
+        try {
+            const text = await file.text();
+            const results = Papa.parse(text, { 
+                header: true,
+                skipEmptyLines: true,
+                transformHeader: (header) => header.trim()
+            });
+
+            if (results.errors.length > 0) {
+                throw new Error(`CSV parsing errors: ${results.errors.map(e => e.message).join(', ')}`);
+            }
+
+            const duplicates = findPotentialDuplicates(results.data);
+            
+            if (duplicates.length > 0) {
+                setParsedData(results.data);
+                setPotentialDuplicates(duplicates);
+                setShowDuplicatesModal(true);
+                setIsUploading(false);
+            } else {
+                processCSV(file);
+            }
+        } catch (error) {
+            setNotification({
+                open: true,
+                message: error.message || 'Error preprocessing file',
+                severity: 'error'
+            });
+            resetUploadState();
+        }
     };
 
     return (
@@ -269,13 +375,98 @@ export const UploadGame = ({ selectedLeague, refreshGames }) => {
             >
                 Upload Game
             </Button>
-            <Snackbar 
-                open={notification.open} 
-                autoHideDuration={6000} 
-                onClose={handleCloseNotification}
+            
+            <Dialog 
+                open={showDuplicatesModal} 
+                maxWidth="md" 
+                fullWidth
+                onClose={() => setShowDuplicatesModal(false)}
+            >
+                <DialogTitle>
+                    Combine Player Records
+                </DialogTitle>
+                <DialogContent>
+                    <Typography sx={{ mb: 2 }}>
+                        Select records that belong to the same player and choose the preferred name:
+                    </Typography>
+                    {potentialDuplicates.map((group, groupIndex) => (
+                        <Box key={groupIndex} sx={{ mb: 3 }}>
+                            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                                Player Group {groupIndex + 1}
+                            </Typography>
+                            <Box sx={{ display: 'flex', mb: 2 }}>
+                                <Typography sx={{ flex: 1 }}>Select records to combine</Typography>
+                                <Typography sx={{ width: 120, textAlign: 'center' }}>
+                                    Use this name
+                                </Typography>
+                            </Box>
+                            <FormControl component="fieldset" sx={{ width: '100%' }}>
+                                <FormGroup>
+                                    {group.map((player) => (
+                                        <Box 
+                                            key={player.player_id} 
+                                            sx={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                mb: 1
+                                            }}
+                                        >
+                                            <FormControlLabel
+                                                sx={{ flex: 1 }}
+                                                control={
+                                                    <Checkbox
+                                                        checked={selectedDuplicates[groupIndex]?.[player.player_id] || false}
+                                                        onChange={(e) => handleDuplicateSelection(
+                                                            groupIndex,
+                                                            player.player_id,
+                                                            e.target.checked
+                                                        )}
+                                                    />
+                                                }
+                                                label={`${player.player_nickname} (ID: ${player.player_id})`}
+                                            />
+                                            <Box sx={{ width: 120, display: 'flex', justifyContent: 'center' }}>
+                                                {selectedDuplicates[groupIndex]?.[player.player_id] && (
+                                                    <Radio
+                                                        checked={selectedNames[groupIndex] === player.player_nickname}
+                                                        onChange={() => handleNameSelection(groupIndex, player.player_nickname)}
+                                                    />
+                                                )}
+                                            </Box>
+                                        </Box>
+                                    ))}
+                                </FormGroup>
+                            </FormControl>
+                            <Divider sx={{ my: 2 }} />
+                        </Box>
+                    ))}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => {
+                        setShowDuplicatesModal(false);
+                        setSelectedDuplicates({});
+                        setSelectedNames({});
+                    }}>
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={processDuplicates} 
+                        variant="contained"
+                        disabled={Object.keys(selectedDuplicates).length === 0}
+                    >
+                        Combine & Continue
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Snackbar
+                open={notification.open}
+                autoHideDuration={6000}
+                onClose={() => setNotification({ ...notification, open: false })}
             >
                 <Alert 
-                    onClose={handleCloseNotification} 
+                    onClose={() => setNotification({ ...notification, open: false })} 
                     severity={notification.severity}
                 >
                     {notification.message}

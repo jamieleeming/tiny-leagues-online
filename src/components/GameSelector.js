@@ -27,6 +27,13 @@ export const GameSelector = ({
     setVenmoIds,
     setSelectedPlayer
 }) => {
+    const resetGameSelection = () => {
+        setSelectedGame(null);
+        setLedgerData(null);
+        setVenmoIds({});
+        setSelectedPlayer('');
+    };
+
     // Filter games from last week and sort by startTime in descending order
     const sortedGames = [...games]
         .filter(game => {
@@ -43,10 +50,7 @@ export const GameSelector = ({
 
     const handleGameClick = async (game) => {
         // Reset all states first
-        setSelectedGame(null);
-        setLedgerData(null);
-        setVenmoIds({});
-        setSelectedPlayer('');  // Reset selected player
+        resetGameSelection();
 
         // If no game selected, we're done
         if (!game) {
@@ -133,6 +137,7 @@ export const GameSelector = ({
                     <UploadGame 
                         selectedLeague={selectedLeague}
                         refreshGames={refreshGames}
+                        onResetSelectedGame={resetGameSelection}
                     />
                 </Box>
 
