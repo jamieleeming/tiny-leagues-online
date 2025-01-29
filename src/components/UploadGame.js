@@ -79,14 +79,24 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
 
     const findPotentialDuplicates = (data) => {
         const normalizedGroups = data.reduce((groups, row) => {
+            // Create more thorough variations of the name
+            const name = row.player_nickname.trim();
             const variations = [
-                row.player_nickname.trim().toLowerCase(),
-                row.player_nickname.trim().toLowerCase().replace(/\s+/g, ''),
-                row.player_nickname.trim().toLowerCase().replace(/[0-9]/g, ''),
-                row.player_nickname.trim().toLowerCase().replace(/[\s0-9]/g, ''),
+                name.toLowerCase(),
+                name.toLowerCase().replace(/\s+/g, ''),  // Remove spaces
+                name.toLowerCase().replace(/[0-9]/g, ''), // Remove numbers
+                name.toLowerCase().replace(/[\s0-9]/g, ''), // Remove spaces and numbers
+                // New normalizations:
+                name.toLowerCase().replace(/[^a-z]/g, ''), // Remove everything except letters
+                name.toLowerCase().replace(/[^a-z0-9]/g, ''), // Remove everything except letters and numbers
+                name.toLowerCase().replace(/[._\-'"]/g, ''), // Remove common punctuation
+                name.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, ''), // Keep only letters, remove spaces
             ];
 
-            variations.forEach(variant => {
+            // Remove duplicates from variations
+            const uniqueVariations = [...new Set(variations)];
+
+            uniqueVariations.forEach(variant => {
                 if (!groups[variant]) {
                     groups[variant] = [];
                 }
