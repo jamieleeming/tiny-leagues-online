@@ -15,12 +15,56 @@ import {
     Checkbox,
     Typography,
     Divider,
-    Radio
+    Radio,
+    TextField
 } from '@mui/material';
 import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
 import { collection, setDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Papa from 'papaparse';
+
+const NicknameModal = React.memo(({ 
+    open, 
+    onClose, 
+    onContinue, 
+    selectedFile, 
+    nickname, 
+    onNicknameChange, 
+    error 
+}) => (
+    <Dialog 
+        open={open} 
+        onClose={onClose}
+    >
+        <DialogTitle>Game Details</DialogTitle>
+        <DialogContent>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+                Selected file: {selectedFile?.name}
+            </Typography>
+            <TextField
+                fullWidth
+                label="Game Nickname (optional)"
+                value={nickname}
+                onChange={onNicknameChange}
+                error={!!error}
+                helperText={error || 'Letters and numbers only, max 30 characters'}
+                sx={{ mt: 1 }}
+            />
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={onClose}>
+                Cancel
+            </Button>
+            <Button 
+                onClick={onContinue}
+                disabled={!!error}
+                variant="contained"
+            >
+                Continue
+            </Button>
+        </DialogActions>
+    </Dialog>
+));
 
 export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }) => {
     const fileInputRef = useRef(null);
@@ -31,6 +75,10 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
     const [selectedDuplicates, setSelectedDuplicates] = useState({});
     const [selectedNames, setSelectedNames] = useState({});
     const [parsedData, setParsedData] = useState(null);
+    const [showNicknameModal, setShowNicknameModal] = useState(false);
+    const [gameNickname, setGameNickname] = useState('');
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [nicknameError, setNicknameError] = useState('');
 
     const resetUploadState = () => {
         if (fileInputRef.current) {
@@ -79,23 +127,19 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
 
     const findPotentialDuplicates = (data) => {
         const normalizedGroups = data.reduce((groups, row) => {
-            // Create more thorough variations of the name
             const name = row.player_nickname.trim();
             const variations = [
                 name.toLowerCase(),
-                name.toLowerCase().replace(/\s+/g, ''),  // Remove spaces
-                name.toLowerCase().replace(/[0-9]/g, ''), // Remove numbers
-                name.toLowerCase().replace(/[\s0-9]/g, ''), // Remove spaces and numbers
-                // New normalizations:
-                name.toLowerCase().replace(/[^a-z]/g, ''), // Remove everything except letters
-                name.toLowerCase().replace(/[^a-z0-9]/g, ''), // Remove everything except letters and numbers
-                name.toLowerCase().replace(/[._\-'"]/g, ''), // Remove common punctuation
-                name.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, ''), // Keep only letters, remove spaces
+                name.toLowerCase().replace(/\s+/g, ''),
+                name.toLowerCase().replace(/[0-9]/g, ''),
+                name.toLowerCase().replace(/[\s0-9]/g, ''),
+                name.toLowerCase().replace(/[^a-z]/g, ''),
+                name.toLowerCase().replace(/[^a-z0-9]/g, ''),
+                name.toLowerCase().replace(/[._\-'"]/g, ''),
+                name.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, ''),
             ];
 
-            // Remove duplicates from variations
             const uniqueVariations = [...new Set(variations)];
-
             uniqueVariations.forEach(variant => {
                 if (!groups[variant]) {
                     groups[variant] = [];
@@ -111,6 +155,32 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
             return groups;
         }, {});
 
+        const subStringMatches = data.reduce((matches, row1) => {
+            const name1 = row1.player_nickname.trim().toLowerCase();
+            
+            data.forEach(row2 => {
+                if (row1.player_id !== row2.player_id) {
+                    const name2 = row2.player_nickname.trim().toLowerCase();
+                    
+                    if (name1.includes(name2) || name2.includes(name1)) {
+                        const key = [row1.player_id, row2.player_id].sort().join('|');
+                        if (!matches.has(key)) {
+                            matches.set(key, [{
+                                player_id: row1.player_id,
+                                player_nickname: row1.player_nickname.trim(),
+                                normalized: name1
+                            }, {
+                                player_id: row2.player_id,
+                                player_nickname: row2.player_nickname.trim(),
+                                normalized: name2
+                            }]);
+                        }
+                    }
+                }
+            });
+            return matches;
+        }, new Map());
+
         const potentialDuplicates = new Map();
         
         Object.values(normalizedGroups).forEach(group => {
@@ -119,6 +189,12 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                 if (!potentialDuplicates.has(key)) {
                     potentialDuplicates.set(key, group);
                 }
+            }
+        });
+
+        subStringMatches.forEach((group, key) => {
+            if (!potentialDuplicates.has(key)) {
+                potentialDuplicates.set(key, group);
             }
         });
 
@@ -259,7 +335,7 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                 const stack = parseInt(row.stack.replace(/[^\d-]/g, '')) || 0;
 
                 player.buyIn += buyIn;
-                player.cashOut += (buyOut || stack);
+                player.cashOut += (buyOut + stack);
             });
 
             const sessionResults = Array.from(playerMap.values()).map(player => ({
@@ -290,8 +366,23 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
 
             const settlements = calculateSettlements([...sessionResults]);
 
+            // Find the host (player with earliest start time)
+            let hostPlayer = null;
+            let earliestStartTime = null;
+
+            data.forEach(row => {
+                if (row.session_start_at) {
+                    const startTime = new Date(row.session_start_at);
+                    if (!earliestStartTime || startTime < earliestStartTime) {
+                        earliestStartTime = startTime;
+                        hostPlayer = row.player_nickname.trim();
+                    }
+                }
+            });
+
             const gameData = {
                 id: gameId,
+                nickname: gameNickname?.trim() || (hostPlayer ? `${hostPlayer}'s Game` : null),
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 startTime: startTime ? startTime.toISOString() : null,
@@ -327,44 +418,32 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                 severity: 'error'
             });
             resetUploadState();
+            setGameNickname('');
+            setSelectedFile(null);
         }
+    };
+
+    const validateNickname = (value) => {
+        const trimmedValue = value.trim();
+        if (trimmedValue.length > 30) {
+            return 'Nickname must be 30 characters or less';
+        }
+        if (trimmedValue && !/^[a-zA-Z0-9\s]*$/.test(trimmedValue)) {
+            return 'Only letters, numbers, and spaces allowed';
+        }
+        return '';
     };
 
     const handleFileChange = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
         
-        setIsUploading(true);
+        setSelectedFile(file);
+        setShowNicknameModal(true);
 
-        try {
-            const text = await file.text();
-            const results = Papa.parse(text, { 
-                header: true,
-                skipEmptyLines: true,
-                transformHeader: (header) => header.trim()
-            });
-
-            if (results.errors.length > 0) {
-                throw new Error(`CSV parsing errors: ${results.errors.map(e => e.message).join(', ')}`);
-            }
-
-            const duplicates = findPotentialDuplicates(results.data);
-            
-            if (duplicates.length > 0) {
-                setParsedData(results.data);
-                setPotentialDuplicates(duplicates);
-                setShowDuplicatesModal(true);
-                setIsUploading(false);
-            } else {
-                processCSV(file);
-            }
-        } catch (error) {
-            setNotification({
-                open: true,
-                message: error.message || 'Error preprocessing file',
-                severity: 'error'
-            });
-            resetUploadState();
+        // Reset the file input value so the same file can be selected again
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 
@@ -385,6 +464,29 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
             >
                 Upload Game
             </Button>
+            
+            <NicknameModal 
+                open={showNicknameModal}
+                onClose={() => {
+                    setShowNicknameModal(false);
+                    setGameNickname('');
+                    setSelectedFile(null);
+                    setNicknameError('');
+                }}
+                onContinue={() => {
+                    setShowNicknameModal(false);
+                    processCSV(selectedFile);
+                    setGameNickname('');
+                }}
+                selectedFile={selectedFile}
+                nickname={gameNickname}
+                onNicknameChange={(e) => {
+                    const value = e.target.value;
+                    setGameNickname(value);
+                    setNicknameError(validateNickname(value));
+                }}
+                error={nicknameError}
+            />
             
             <Dialog 
                 open={showDuplicatesModal} 

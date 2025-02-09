@@ -132,7 +132,30 @@ export const GameSelector = ({
                     />
                 </Box>
 
-                <List>
+                <List
+                    sx={{
+                        maxHeight: '320px',
+                        overflowY: 'overlay',  // Changed from 'auto' to 'overlay'
+                        '&::-webkit-scrollbar': {
+                            width: '8px',
+                            display: 'none',  // Hide by default
+                        },
+                        '&:hover::-webkit-scrollbar': {
+                            display: 'block',  // Show on hover
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            background: '#f1f1f1',
+                            borderRadius: '4px',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            background: '#888',
+                            borderRadius: '4px',
+                            '&:hover': {
+                                background: '#666',
+                            },
+                        },
+                    }}
+                >
                     {sortedGames.map((game, index) => (
                         <React.Fragment key={game.id}>
                             <ListItemButton 
@@ -148,8 +171,8 @@ export const GameSelector = ({
                                     <DiceIcon color="primary" />
                                 </ListItemIcon>
                                 <ListItemText 
-                                    primary={formatDateTime(game.startTime)}
-                                    secondary={`${game.sessionResults?.length || 0} players`}
+                                    primary={game.nickname || formatDateTime(game.startTime)}
+                                    secondary={`${formatDateTime(game.startTime)} • ${game.sessionResults?.length || 0} players`}
                                 />
                             </ListItemButton>
                             {index < sortedGames.length - 1 && (

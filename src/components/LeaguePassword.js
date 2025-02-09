@@ -44,7 +44,12 @@ export const LeaguePassword = ({
         }
     }, [isLeagueValidated, onValidationComplete]);
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e) => {
+        // Prevent default form submission
+        if (e) e.preventDefault();
+        
+        if (!selectedLeague || isSubmitting) return;
+        
         setIsSubmitting(true);
         await validateLeague();
         setIsSubmitting(false);
@@ -72,61 +77,63 @@ export const LeaguePassword = ({
                         </Typography>
                     </Box>
 
-                    <Box sx={{ 
-                        display: 'flex', 
-                        flexDirection: { xs: 'column', sm: 'row' },
-                        gap: 2,
-                        alignItems: { xs: 'stretch', sm: 'flex-start' }
-                    }}>
-                        <TextField
-                            value={selectedLeague || ''} 
-                            onChange={(e) => {
-                                const input = e.target.value.toUpperCase();
-                                setSelectedLeague(input);
-                                setLeagueError(null);
-                            }}
-                            placeholder="Enter league password"
-                            inputProps={{ maxLength: 12 }}
-                            disabled={isLeagueValidated}
-                            size="medium"
-                            fullWidth
-                            variant="outlined"
-                            sx={{
-                                maxWidth: { sm: '300px' },
-                                '& .MuiOutlinedInput-root': {
-                                    backgroundColor: 'background.paper',
-                                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'primary.main'
-                                    }
-                                },
-                                '& .MuiOutlinedInput-input': {
-                                    color: 'text.primary'
-                                },
-                                '& .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: 'divider'
-                                }
-                            }}
-                        />
-                        
-                        {!isLeagueValidated && (
-                            <Button 
-                                onClick={handleSubmit}
-                                disabled={!selectedLeague || isSubmitting}
-                                variant="contained"
-                                size="large"
-                                sx={{
-                                    minWidth: '120px',
-                                    height: '56px'
+                    <form onSubmit={handleSubmit}>
+                        <Box sx={{ 
+                            display: 'flex', 
+                            flexDirection: { xs: 'column', sm: 'row' },
+                            gap: 2,
+                            alignItems: { xs: 'stretch', sm: 'flex-start' }
+                        }}>
+                            <TextField
+                                value={selectedLeague || ''} 
+                                onChange={(e) => {
+                                    const input = e.target.value.toUpperCase();
+                                    setSelectedLeague(input);
+                                    setLeagueError(null);
                                 }}
-                            >
-                                {isSubmitting ? (
-                                    <CircularProgress size={24} color="inherit" />
-                                ) : (
-                                    'Submit'
-                                )}
-                            </Button>
-                        )}
-                    </Box>
+                                placeholder="Enter league password"
+                                inputProps={{ maxLength: 12 }}
+                                disabled={isLeagueValidated}
+                                size="medium"
+                                fullWidth
+                                variant="outlined"
+                                sx={{
+                                    maxWidth: { sm: '300px' },
+                                    '& .MuiOutlinedInput-root': {
+                                        backgroundColor: 'background.paper',
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: 'primary.main'
+                                        }
+                                    },
+                                    '& .MuiOutlinedInput-input': {
+                                        color: 'text.primary'
+                                    },
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: 'divider'
+                                    }
+                                }}
+                            />
+                            
+                            {!isLeagueValidated && (
+                                <Button 
+                                    type="submit"  // Changed to submit type
+                                    disabled={!selectedLeague || isSubmitting}
+                                    variant="contained"
+                                    size="large"
+                                    sx={{
+                                        minWidth: '120px',
+                                        height: '56px'
+                                    }}
+                                >
+                                    {isSubmitting ? (
+                                        <CircularProgress size={24} color="inherit" />
+                                    ) : (
+                                        'Submit'
+                                    )}
+                                </Button>
+                            )}
+                        </Box>
+                    </form>
 
                     <Fade in={!!leagueError}>
                         <Box sx={{ mt: 2 }}>

@@ -93,7 +93,7 @@ export const PlayerDetails = ({
                 
                 <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel sx={{ 
-                        transform: 'translate(14px, 17px) scale(1)',
+                        transform: 'translate(14px, 8px) scale(1)',
                         '&.Mui-focused': {
                             transform: 'translate(14px, -9px) scale(0.75)'
                         },
