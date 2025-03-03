@@ -26,6 +26,7 @@ import {
     Snackbar, 
     useMediaQuery 
 } from '@mui/material';
+import { hasLeagueAccess, saveLeagueAccess } from './utils/leagueAuth';
 
 // Move theme creation inside the component to access system preference
 const PokerLedger = () => {
@@ -58,6 +59,26 @@ const PokerLedger = () => {
     const [notification, setNotification] = useState(null);
     const [showGameSelector, setShowGameSelector] = useState(false);
     const [ledgerData, setLedgerData] = useState(null);
+    const [showLeaguePassword, setShowLeaguePassword] = useState(true);
+
+    // Check for existing league access on component mount
+    useEffect(() => {
+        const checkExistingAccess = () => {
+            // Get the league ID from localStorage if it exists
+            const storedLeague = localStorage.getItem('lastLeague');
+            
+            if (storedLeague && hasLeagueAccess(storedLeague)) {
+                // If we have valid access to the stored league, auto-select it
+                setSelectedLeague(storedLeague);
+                setIsLeagueValidated(true);
+                setShowLeaguePassword(false);
+                setShowGameSelector(true);
+                fetchGames(storedLeague);
+            }
+        };
+        
+        checkExistingAccess();
+    }, []);
 
     const formatAmount = (amount) => {
         return new Intl.NumberFormat('en-US', {
@@ -362,23 +383,39 @@ const PokerLedger = () => {
 
     const validateLeague = async () => {
         if (!selectedLeague) return;
-
+        
         try {
-            const leagueRef = doc(db, 'leagues', selectedLeague);
-            const leagueDoc = await getDoc(leagueRef);
-
-            if (leagueDoc.exists()) {
-                setIsLeagueValidated(true);
-                setLeagueError(null);
-                await fetchLeagueGames();
-            } else {
-                setLeagueError('Invalid league ID');
-                setIsLeagueValidated(false);
+            // Check if league exists in Firestore
+            const leagueDoc = await getDoc(doc(db, 'leagues', selectedLeague));
+            
+            if (!leagueDoc.exists()) {
+                setLeagueError('League not found. Please check the code and try again.');
+                return;
             }
+            
+            // League exists, save access token
+            saveLeagueAccess(selectedLeague);
+            
+            // Store the last used league for convenience
+            localStorage.setItem('lastLeague', selectedLeague);
+            
+            setIsLeagueValidated(true);
+            setLeagueError(null);
+            
+            // Fetch games for the validated league
+            fetchGames(selectedLeague);
+            
+            // After a delay, hide the league password component
+            setTimeout(() => {
+                setShowLeaguePassword(false);
+                setTimeout(() => {
+                    setShowGameSelector(true);
+                }, 300);
+            }, 2000);
+            
         } catch (error) {
-            console.error('Error in validateLeague:', error);
-            setLeagueError('Error validating league');
-            setIsLeagueValidated(false);
+            console.error('Error validating league:', error);
+            setLeagueError('Error validating league. Please try again.');
         }
     };
 
@@ -415,36 +452,34 @@ const PokerLedger = () => {
         }
     }, [isLeagueValidated, selectedLeague]);
 
-    const fetchGames = async () => {
-        if (!selectedLeague) return;
+    const fetchGames = async (leagueId) => {
+        if (!leagueId) return;
+        
+        setIsLoadingGames(true);
+        setGamesError(null);
         
         try {
-            const leagueRef = doc(db, 'leagues', selectedLeague);
-            const gamesCollectionRef = collection(leagueRef, 'games');
-            const gamesSnapshot = await getDocs(gamesCollectionRef);
+            const gamesRef = collection(db, 'leagues', leagueId, 'games');
+            const q = query(gamesRef, orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
             
-            // Just map and sort the games, no filtering
-            const gamesData = gamesSnapshot.docs
-                .map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }))
-                .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+            const gamesList = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
             
-            setGames(gamesData);
-        } catch (error) {
-            console.error('Error fetching games:', error);
-            setGamesError('Failed to load games');
+            setGames(gamesList);
+        } catch (err) {
+            console.error('Error fetching games:', err);
+            setGamesError('Failed to load games. Please try again later.');
+        } finally {
+            setIsLoadingGames(false);
         }
     };
 
     // Add this handler to close the notification
     const handleCloseNotification = () => {
         setNotification(null);
-    };
-
-    const handleValidationComplete = () => {
-        setShowGameSelector(true);
     };
 
     useEffect(() => {
@@ -459,30 +494,32 @@ const PokerLedger = () => {
         }
     }, [selectedGame]);
 
+    const toggleDarkMode = () => {
+        setManualDarkMode(prev => 
+            prev === null ? !prefersDarkMode : !prev
+        );
+    };
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 <Header 
                     isDarkMode={isDarkMode}
-                    onToggleDarkMode={() => setManualDarkMode(prev => 
-                        prev === null ? !prefersDarkMode : !prev
-                    )}
+                    onToggleDarkMode={toggleDarkMode}
                 />
                 <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flex: 1 }}>
                     <Box sx={{ position: 'relative' }}>
-                        <Box sx={{ position: 'absolute', width: '100%' }}>
+                        {showLeaguePassword && (
                             <LeaguePassword 
                                 selectedLeague={selectedLeague}
                                 setSelectedLeague={setSelectedLeague}
                                 isLeagueValidated={isLeagueValidated}
-                                setIsLeagueValidated={setIsLeagueValidated}
+                                validateLeague={validateLeague}
                                 leagueError={leagueError}
                                 setLeagueError={setLeagueError}
-                                validateLeague={validateLeague}
-                                onValidationComplete={handleValidationComplete}
                             />
-                        </Box>
+                        )}
                         
                         <Fade 
                             in={showGameSelector} 

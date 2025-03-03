@@ -79,6 +79,8 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
     const [gameNickname, setGameNickname] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
     const [nicknameError, setNicknameError] = useState('');
+    const [currentGameId, setCurrentGameId] = useState(null);
+    const [currentNickname, setCurrentNickname] = useState('');
 
     const resetUploadState = () => {
         if (fileInputRef.current) {
@@ -88,12 +90,28 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
     };
 
     const extractGameId = (filename) => {
+        if (!filename) {
+            return null;
+        }
         const match = filename.match(/ledger_([^.(\s]+)/);
         return match ? match[1] : null;
     };
 
     const calculateSettlements = (sessionResults) => {
-        const sortedPlayers = [...sessionResults].sort((a, b) => b.net - a.net);
+        if (!sessionResults || !Array.isArray(sessionResults) || sessionResults.length === 0) {
+            return [];
+        }
+        
+        // Make a deep copy to avoid modifying the original
+        const sortedPlayers = sessionResults.map(player => ({
+            ...player,
+            id: player.id || 'unknown',
+            name: player.name || `Player ${player.id || 'unknown'}`,
+            net: (player.cashOut || 0) - (player.buyIn || 0)
+        })).sort((a, b) => b.net - a.net);
+        
+        console.log("Sorted players for settlements:", sortedPlayers);
+        
         const settlements = [];
 
         let i = 0;
@@ -103,6 +121,11 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
             const winner = sortedPlayers[i];
             const loser = sortedPlayers[j];
 
+            if (!winner || !loser) {
+                console.error("Invalid winner or loser in settlement calculation", { winner, loser, i, j });
+                break;
+            }
+
             if (winner.net <= 0) break;
             if (loser.net >= 0) break;
 
@@ -110,8 +133,14 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
             
             settlements.push({
                 amount,
-                from: { id: loser.id, name: loser.name },
-                to: { id: winner.id, name: winner.name },
+                from: { 
+                    id: loser.id || 'unknown', 
+                    name: loser.name || `Player ${loser.id || 'unknown'}`
+                },
+                to: { 
+                    id: winner.id || 'unknown', 
+                    name: winner.name || `Player ${winner.id || 'unknown'}`
+                },
                 status: 'pending'
             });
 
@@ -155,6 +184,23 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
             return groups;
         }, {});
 
+        // Add case-insensitive comparison
+        const caseInsensitiveGroups = data.reduce((groups, row) => {
+            const name = row.player_nickname.trim().toLowerCase();
+            
+            if (!groups[name]) {
+                groups[name] = [];
+            }
+            if (!groups[name].find(p => p.player_id === row.player_id)) {
+                groups[name].push({
+                    player_id: row.player_id,
+                    player_nickname: row.player_nickname.trim(),
+                    normalized: name
+                });
+            }
+            return groups;
+        }, {});
+
         const subStringMatches = data.reduce((matches, row1) => {
             const name1 = row1.player_nickname.trim().toLowerCase();
             
@@ -184,6 +230,16 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
         const potentialDuplicates = new Map();
         
         Object.values(normalizedGroups).forEach(group => {
+            if (group.length > 1) {
+                const key = group.map(p => p.player_id).sort().join('|');
+                if (!potentialDuplicates.has(key)) {
+                    potentialDuplicates.set(key, group);
+                }
+            }
+        });
+
+        // Add case-insensitive groups
+        Object.values(caseInsensitiveGroups).forEach(group => {
             if (group.length > 1) {
                 const key = group.map(p => p.player_id).sort().join('|');
                 if (!potentialDuplicates.has(key)) {
@@ -229,17 +285,27 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
             
             if (selectedIds.length > 1) {
                 try {
-                    const venmoPromises = selectedIds.map(async (playerId) => {
-                        const venmoDoc = await getDoc(doc(db, 'venmo_ids', playerId));
-                        return {
-                            playerId,
-                            hasVenmo: venmoDoc.exists(),
-                            venmoData: venmoDoc.data()
-                        };
+                    // Check if any of the IDs already have Venmo information
+                    const existingVenmoPromises = selectedIds.map(async (playerId) => {
+                        try {
+                            // Check if player exists in the venmoIds collection
+                            const venmoDoc = await getDoc(doc(db, 'venmoIds', playerId));
+                            return {
+                                playerId,
+                                hasVenmo: venmoDoc.exists(),
+                                venmoData: venmoDoc.exists() ? venmoDoc.data() : null
+                            };
+                        } catch (error) {
+                            return { playerId, hasVenmo: false, venmoData: null };
+                        }
                     });
                     
-                    const venmoResults = await Promise.all(venmoPromises);
+                    const venmoResults = await Promise.all(existingVenmoPromises);
+                    
+                    // Prioritize players that already have Venmo information
                     const playerWithVenmo = venmoResults.find(result => result.hasVenmo);
+                    
+                    // Use player with Venmo if found, otherwise use the first selected ID
                     const primaryId = playerWithVenmo ? playerWithVenmo.playerId : selectedIds[0];
                     
                     if (selectedNames[groupIndex]) {
@@ -252,18 +318,28 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                             idMappings[id] = primaryId;
                         });
                 } catch (error) {
+                    // Fallback to using the first ID if there's an error
                     const primaryId = selectedIds[0];
+                    
                     if (selectedNames[groupIndex]) {
                         nameMapping[primaryId] = selectedNames[groupIndex];
                     }
-                    selectedIds.slice(1).forEach(id => {
-                        idMappings[id] = primaryId;
-                    });
+                    
+                    selectedIds
+                        .filter(id => id !== primaryId)
+                        .forEach(id => {
+                            idMappings[id] = primaryId;
+                        });
                 }
             }
         }
 
+        // Create a new processed data array with mapped IDs and names
         const processedData = parsedData.map(row => {
+            if (!row || typeof row !== 'object') {
+                return row;
+            }
+            
             const mappedId = idMappings[row.player_id];
             if (mappedId) {
                 return {
@@ -281,8 +357,18 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
             return row;
         });
 
-        processCSV(processedData);
-        setShowDuplicatesModal(false);
+        // Make sure we reset the upload state if there's an error
+        try {
+            await processCSV(processedData);
+            setShowDuplicatesModal(false);
+        } catch (error) {
+            setNotification({
+                open: true,
+                message: error.message || 'Error processing duplicates',
+                severity: 'error'
+            });
+            resetUploadState();
+        }
     };
 
     const processCSV = async (fileOrData) => {
@@ -293,9 +379,34 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
 
             if (Array.isArray(fileOrData)) {
                 data = fileOrData;
-                gameId = extractGameId(fileInputRef.current.files[0].name);
+                
+                // Use the stored game ID for merged data
+                if (currentGameId) {
+                    gameId = currentGameId;
+                } else {
+                    // Fallback to extracting from file references
+                    if (selectedFile) {
+                        gameId = extractGameId(selectedFile.name);
+                    }
+                    
+                    if (!gameId && fileInputRef.current && fileInputRef.current.files && fileInputRef.current.files[0]) {
+                        gameId = extractGameId(fileInputRef.current.files[0].name);
+                    }
+                    
+                    if (!gameId) {
+                        gameId = 'game_' + Math.random().toString(36).substring(2, 15);
+                    }
+                }
             } else {
+                if (!fileOrData || !fileOrData.name) {
+                    throw new Error('Invalid file: missing file name');
+                }
+                
                 gameId = extractGameId(fileOrData.name);
+                
+                // Store the game ID for later use
+                setCurrentGameId(gameId);
+                
                 const text = await fileOrData.text();
                 const results = Papa.parse(text, { 
                     header: true,
@@ -313,26 +424,57 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                 throw new Error('Invalid file name format. Expected: ledger_GAMEID.csv');
             }
 
+            // Check for potential duplicates before proceeding
+            const duplicates = findPotentialDuplicates(data);
+            if (duplicates.length > 0 && !Array.isArray(fileOrData)) {
+                setPotentialDuplicates(duplicates);
+                setParsedData(data);
+                setShowDuplicatesModal(true);
+                setIsUploading(false);
+                return;
+            }
+
             const playerMap = new Map();
 
+            // First pass: create player entries with extra validation
             data.forEach(row => {
+                if (!row || typeof row !== 'object') {
+                    return;
+                }
+                
                 if (row.player_id && !playerMap.has(row.player_id)) {
+                    const playerName = row.player_nickname ? row.player_nickname.trim() : `Player ${row.player_id}`;
+                    
                     playerMap.set(row.player_id, {
                         id: row.player_id,
-                        name: row.player_nickname.trim(),
+                        name: playerName,
                         buyIn: 0,
                         cashOut: 0
                     });
                 }
             });
 
+            // Second pass: accumulate buy-ins and cash-outs with extra validation
             data.forEach(row => {
+                if (!row || typeof row !== 'object') return;
                 if (!row.player_id || !playerMap.has(row.player_id)) return;
 
                 const player = playerMap.get(row.player_id);
-                const buyIn = parseInt(row.buy_in.replace(/[^\d-]/g, '')) || 0;
-                const buyOut = parseInt(row.buy_out.replace(/[^\d-]/g, '')) || 0;
-                const stack = parseInt(row.stack.replace(/[^\d-]/g, '')) || 0;
+                
+                // Safely parse numeric values
+                let buyIn = 0;
+                let buyOut = 0;
+                let stack = 0;
+                
+                try {
+                    buyIn = parseInt(String(row.buy_in || '0').replace(/[^\d-]/g, '') || '0');
+                    buyOut = parseInt(String(row.buy_out || '0').replace(/[^\d-]/g, '') || '0');
+                    stack = parseInt(String(row.stack || '0').replace(/[^\d-]/g, '') || '0');
+                } catch (e) {
+                    buyIn = 0;
+                    buyOut = 0;
+                    stack = 0;
+                }
 
                 player.buyIn += buyIn;
                 player.cashOut += (buyOut + stack);
@@ -375,22 +517,45 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                     const startTime = new Date(row.session_start_at);
                     if (!earliestStartTime || startTime < earliestStartTime) {
                         earliestStartTime = startTime;
-                        hostPlayer = row.player_nickname.trim();
+                        hostPlayer = row.player_nickname ? row.player_nickname.trim() : null;
                     }
                 }
             });
 
+            // Log session results and settlements for debugging
+            console.log("Final session results:", sessionResults);
+            console.log("Calculated settlements:", settlements);
+
             const gameData = {
                 id: gameId,
-                nickname: gameNickname?.trim() || (hostPlayer ? `${hostPlayer}'s Game` : null),
+                nickname: currentNickname?.trim() || gameNickname?.trim() || (hostPlayer ? `${hostPlayer}'s Game` : `Game ${gameId}`),
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 startTime: startTime ? startTime.toISOString() : null,
                 endTime: endTime ? endTime.toISOString() : null,
                 leagueId: selectedLeague,
-                sessionResults,
-                settlements
+                sessionResults: sessionResults.map(player => ({
+                    id: player.id || 'unknown',
+                    name: player.name || `Player ${player.id || 'unknown'}`,
+                    buyIn: player.buyIn || 0,
+                    cashOut: player.cashOut || 0,
+                    net: (player.cashOut || 0) - (player.buyIn || 0)
+                })),
+                settlements: settlements.map(settlement => ({
+                    amount: settlement.amount,
+                    from: { 
+                        id: settlement.from?.id || 'unknown', 
+                        name: settlement.from?.name || 'Unknown Player' 
+                    },
+                    to: { 
+                        id: settlement.to?.id || 'unknown', 
+                        name: settlement.to?.name || 'Unknown Player' 
+                    },
+                    status: settlement.status || 'pending'
+                }))
             };
+
+            console.log("Final game data with nickname:", currentNickname, gameNickname, gameData.nickname);
 
             await setDoc(doc(db, 'leagues', selectedLeague, 'games', gameId), gameData);
 
@@ -418,7 +583,6 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                 severity: 'error'
             });
             resetUploadState();
-            setGameNickname('');
             setSelectedFile(null);
         }
     };
@@ -447,6 +611,13 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
         }
     };
 
+    const handleNicknameChange = (e) => {
+        const value = e.target.value;
+        setGameNickname(value);
+        setCurrentNickname(value);
+        setNicknameError(validateNickname(value));
+    };
+
     return (
         <Box>
             <input
@@ -469,22 +640,16 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                 open={showNicknameModal}
                 onClose={() => {
                     setShowNicknameModal(false);
-                    setGameNickname('');
                     setSelectedFile(null);
                     setNicknameError('');
                 }}
                 onContinue={() => {
                     setShowNicknameModal(false);
                     processCSV(selectedFile);
-                    setGameNickname('');
                 }}
                 selectedFile={selectedFile}
                 nickname={gameNickname}
-                onNicknameChange={(e) => {
-                    const value = e.target.value;
-                    setGameNickname(value);
-                    setNicknameError(validateNickname(value));
-                }}
+                onNicknameChange={handleNicknameChange}
                 error={nicknameError}
             />
             
