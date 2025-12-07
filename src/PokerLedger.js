@@ -203,7 +203,8 @@ const PokerLedger = () => {
         const noteText = dateString 
             ? `TL Online - ${dateString}`
             : 'TL Online';
-        const encodedNote = encodeURIComponent(noteText);
+        // Use encodeURIComponent and replace %20 with + for better mobile compatibility
+        const encodedNote = encodeURIComponent(noteText).replace(/%20/g, '+');
         
         const venmoUrl = `https://venmo.com/${recipientVenmoId}?txn=${isRequest ? 'request' : 'pay'}&note=${encodedNote}&amount=${cleanAmount}`;
         window.open(venmoUrl, '_blank');
