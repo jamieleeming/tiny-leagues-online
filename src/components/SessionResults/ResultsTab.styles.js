@@ -27,7 +27,9 @@ export const PlayerCell = styled(TableCell)(() => ({
     fontSize: '0.875rem'
 }));
 
-export const NetCell = styled(TableCell)(({ theme, isPositive, isNegative }) => ({
+export const NetCell = styled(TableCell, {
+    shouldForwardProp: (prop) => prop !== 'isPositive' && prop !== 'isNegative',
+})(({ theme, isPositive, isNegative }) => ({
     color: isPositive 
         ? theme.palette.success.main 
         : isNegative 
