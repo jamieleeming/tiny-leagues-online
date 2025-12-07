@@ -91,10 +91,33 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
 
     const extractGameId = (filename) => {
         if (!filename) {
+            console.warn('extractGameId: filename is null or undefined');
             return null;
         }
-        const match = filename.match(/ledger_([^.(\s]+)/);
-        return match ? match[1] : null;
+        
+        // Handle various filename formats:
+        // - ledger_GAMEID.csv
+        // - ledger_GAMEID (1).csv (iOS duplicate naming)
+        // - ledger_GAMEID(1).csv
+        // - ledger_GAMEID-1.csv
+        // Case-sensitive matching to preserve exact game ID case
+        const patterns = [
+            /^ledger_(.+?)(?: \(\d+\))?\.csv$/,  // Standard format with optional iOS duplicate suffix
+            /^ledger_(.+?)(?:\(\d+\))?\.csv$/,   // Without space before parentheses
+            /^ledger_(.+?)(?:-\d+)?\.csv$/,      // With dash suffix
+            /ledger_([^.(\s]+)/                  // Fallback: original pattern (case-sensitive)
+        ];
+        
+        for (const pattern of patterns) {
+            const match = filename.match(pattern);
+            if (match && match[1]) {
+                return match[1].trim();
+            }
+        }
+        
+        // Log the problematic filename for debugging
+        console.warn('extractGameId: Could not extract game ID from filename:', filename);
+        return null;
     };
 
     const calculateSettlements = (sessionResults) => {
@@ -401,10 +424,20 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                 }
             } else {
                 if (!fileOrData || !fileOrData.name) {
+                    console.error('processCSV: File object missing or has no name property', fileOrData);
                     throw new Error('Invalid file: missing file name');
                 }
                 
+                // Log the filename for debugging mobile issues
+                console.log('processCSV: Processing file with name:', fileOrData.name);
+                
                 gameId = extractGameId(fileOrData.name);
+                
+                if (!gameId) {
+                    // Enhanced error message with the actual filename
+                    console.error('processCSV: Failed to extract game ID from filename:', fileOrData.name);
+                    throw new Error(`Invalid file name format. Expected: ledger_GAMEID.csv\nReceived: ${fileOrData.name}`);
+                }
                 
                 // Store the game ID for later use
                 setCurrentGameId(gameId);
@@ -423,7 +456,12 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
             }
 
             if (!gameId) {
-                throw new Error('Invalid file name format. Expected: ledger_GAMEID.csv');
+                // This should rarely happen now due to improved extractGameId, but keep as safety check
+                const filename = Array.isArray(fileOrData) 
+                    ? (selectedFile?.name || 'unknown') 
+                    : (fileOrData?.name || 'unknown');
+                console.error('processCSV: gameId is null after extraction. Filename:', filename);
+                throw new Error(`Invalid file name format. Expected: ledger_GAMEID.csv\nReceived: ${filename}`);
             }
 
             // Check for potential duplicates before proceeding
