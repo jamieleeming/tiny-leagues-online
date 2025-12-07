@@ -9,40 +9,20 @@ import {
     query,
     orderBy
 } from 'firebase/firestore';
-import { Header } from './components/Header';
 import { LeaguePassword } from './components/LeaguePassword';
 import { GameSelector } from './components/GameSelector';
 import { PlayerDetails } from './components/PlayerDetails';
 import { SessionResults } from './components/SessionResults';
 import { 
-    ThemeProvider, 
-    createTheme, 
-    CssBaseline, 
     Container, 
     Fade, 
     Box, 
     Alert, 
-    Snackbar, 
-    useMediaQuery 
+    Snackbar
 } from '@mui/material';
 import { hasLeagueAccess, saveLeagueAccess } from './utils/leagueAuth';
 
-// Move theme creation inside the component to access system preference
 const PokerLedger = () => {
-    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
-    const [manualDarkMode, setManualDarkMode] = useState(null);
-    const isDarkMode = manualDarkMode ?? prefersDarkMode;
-
-    // Simplify theme to only what we're using
-    const theme = React.useMemo(
-        () =>
-            createTheme({
-                palette: {
-                    mode: isDarkMode ? 'dark' : 'light',
-                }
-            }),
-        [isDarkMode]
-    );
 
     const [selectedPlayer, setSelectedPlayer] = useState('');
     const [selectedLeague, setSelectedLeague] = useState('');
@@ -416,22 +396,10 @@ const PokerLedger = () => {
         }
     }, [selectedGame]);
 
-    const toggleDarkMode = () => {
-        setManualDarkMode(prev => 
-            prev === null ? !prefersDarkMode : !prev
-        );
-    };
-
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                <Header 
-                    isDarkMode={isDarkMode}
-                    onToggleDarkMode={toggleDarkMode}
-                />
-                <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flex: 1 }}>
-                    <Box sx={{ position: 'relative' }}>
+        <>
+            <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flex: 1 }}>
+                <Box sx={{ position: 'relative' }}>
                         {showLeaguePassword && (
                             <LeaguePassword 
                                 selectedLeague={selectedLeague}
@@ -499,11 +467,10 @@ const PokerLedger = () => {
                                 </Fade>
                             </div>
                         </Fade>
-                    </Box>
-                </Container>
-                
-                {/* Add this near the end of your JSX, before the closing ThemeProvider */}
-                <Snackbar 
+                </Box>
+            </Container>
+            
+            <Snackbar 
                     open={Boolean(notification)} 
                     autoHideDuration={6000} 
                     onClose={handleCloseNotification}
@@ -520,8 +487,7 @@ const PokerLedger = () => {
                         </Alert>
                     )}
                 </Snackbar>
-            </div>
-        </ThemeProvider>
+        </>
     );
 };
 

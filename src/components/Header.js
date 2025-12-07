@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
     AppBar, 
     Toolbar, 
@@ -8,7 +9,8 @@ import {
     useTheme,
     useMediaQuery,
     SvgIcon,
-    IconButton
+    IconButton,
+    Button
 } from '@mui/material';
 import {
     Brightness4 as MoonIcon,
@@ -65,6 +67,7 @@ const TLLogo = () => {
 export const Header = ({ isDarkMode, onToggleDarkMode }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const location = useLocation();
 
     return (
         <AppBar 
@@ -123,13 +126,53 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
                                 Tiny Leagues Online
                             </Typography>
                         </Box>
-                        <IconButton 
-                            onClick={onToggleDarkMode}
-                            color="inherit"
-                            size="large"
+                        <Box 
+                            display="flex" 
+                            alignItems="center" 
+                            gap={2}
                         >
-                            {isDarkMode ? <SunIcon /> : <MoonIcon />}
-                        </IconButton>
+                            <Button
+                                component={Link}
+                                to="/"
+                                sx={{
+                                    color: location.pathname === '/' 
+                                        ? theme.palette.primary.main 
+                                        : 'text.primary',
+                                    textTransform: 'none',
+                                    fontWeight: location.pathname === '/' ? 600 : 400,
+                                    '&:hover': {
+                                        backgroundColor: 'transparent',
+                                        color: theme.palette.primary.main
+                                    }
+                                }}
+                            >
+                                Games
+                            </Button>
+                            <Button
+                                component={Link}
+                                to="/rules"
+                                sx={{
+                                    color: location.pathname === '/rules' 
+                                        ? theme.palette.primary.main 
+                                        : 'text.primary',
+                                    textTransform: 'none',
+                                    fontWeight: location.pathname === '/rules' ? 600 : 400,
+                                    '&:hover': {
+                                        backgroundColor: 'transparent',
+                                        color: theme.palette.primary.main
+                                    }
+                                }}
+                            >
+                                Rules
+                            </Button>
+                            <IconButton 
+                                onClick={onToggleDarkMode}
+                                color="inherit"
+                                size="large"
+                            >
+                                {isDarkMode ? <SunIcon /> : <MoonIcon />}
+                            </IconButton>
+                        </Box>
                     </Box>
                 </Toolbar>
             </Container>
