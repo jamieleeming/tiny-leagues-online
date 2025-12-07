@@ -6,16 +6,6 @@ import PokerLedger from './PokerLedger';
 import { Rules } from './components/Rules';
 import { Header } from './components/Header';
 
-// Handle GitHub Pages path rewriting before React Router initializes
-if (window.location.search && window.location.search[1] === '/') {
-  const queryString = window.location.search.slice(1);
-  const pathParts = queryString.split('&');
-  let path = pathParts[0].replace(/~and~/g, '&');
-  const remainingParams = pathParts.slice(1).join('&').replace(/~and~/g, '&');
-  const searchParams = remainingParams ? '?' + remainingParams : '';
-  window.history.replaceState(null, '', path + searchParams + window.location.hash);
-}
-
 function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
   const [manualDarkMode, setManualDarkMode] = useState(null);

@@ -77,28 +77,35 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
                 backgroundColor: theme.palette.background.paper,
                 color: theme.palette.text.primary,
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                py: 2
+                py: { xs: 1, sm: 2 },
+                pt: { xs: 2, sm: 2 }
             }}
         >
             <Container maxWidth="lg">
                 <Toolbar 
                     disableGutters 
                     sx={{ 
-                        height: 70,
+                        minHeight: { xs: 'auto', sm: 70 },
+                        height: { xs: 'auto', sm: 70 },
                         maxWidth: 1200,
-                        mx: 'auto'
+                        mx: 'auto',
+                        py: { xs: 0, sm: 0 }
                     }}
                 >
                     <Box 
                         display="flex" 
-                        alignItems="center" 
+                        flexDirection={{ xs: 'column', sm: 'row' }}
+                        alignItems={{ xs: 'center', sm: 'center' }}
                         width="100%"
                         justifyContent="space-between"
+                        gap={{ xs: 0, sm: 0 }}
                     >
                         <Box 
                             display="flex" 
                             alignItems="center" 
                             gap={3}
+                            justifyContent={{ xs: 'center', sm: 'flex-start' }}
+                            width={{ xs: '100%', sm: 'auto' }}
                         >
                             <Box 
                                 sx={{ 
@@ -130,6 +137,8 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
                             display="flex" 
                             alignItems="center" 
                             gap={2}
+                            width={{ xs: '100%', sm: 'auto' }}
+                            justifyContent={{ xs: 'center', sm: 'flex-end' }}
                         >
                             <Button
                                 component={Link}
