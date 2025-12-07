@@ -5,8 +5,7 @@ import {
     Typography,
     Box,
     Tabs,
-    Tab,
-    useTheme
+    Tab
 } from '@mui/material';
 import { 
     AttachMoney as MoneyIcon
@@ -40,7 +39,6 @@ export const SessionResults = ({
     selectedPlayer,
     onSettleUp
 }) => {
-    const theme = useTheme();
     const [tabValue, setTabValue] = useState(0);
 
     if (!ledgerData || !Array.isArray(ledgerData)) {

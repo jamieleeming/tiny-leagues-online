@@ -79,7 +79,6 @@ export const PlayerDetails = ({
     };
 
     const playerStats = selectedPlayer ? getPlayerStats(selectedPlayer) : null;
-    const venmoId = selectedPlayer ? venmoIds[selectedPlayer] || '' : '';
 
     return (
         <Card sx={{ mt: 2 }}>

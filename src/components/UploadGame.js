@@ -19,7 +19,7 @@ import {
     TextField
 } from '@mui/material';
 import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
-import { collection, setDoc, doc, getDoc } from 'firebase/firestore';
+import { setDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Papa from 'papaparse';
 

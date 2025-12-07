@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { db } from './firebase';
 import { 
     collection, 
@@ -7,7 +7,6 @@ import {
     getDocs,
     getDoc,
     query,
-    where,
     orderBy
 } from 'firebase/firestore';
 import { Header } from './components/Header';
@@ -45,12 +44,10 @@ const PokerLedger = () => {
         [isDarkMode]
     );
 
-    const [error, setError] = useState(null);
     const [selectedPlayer, setSelectedPlayer] = useState('');
     const [selectedLeague, setSelectedLeague] = useState('');
     const [leagueError, setLeagueError] = useState(null);
     const [isLeagueValidated, setIsLeagueValidated] = useState(false);
-    const [leagueGames, setLeagueGames] = useState([]);
     const [selectedGame, setSelectedGame] = useState(null);
     const [games, setGames] = useState([]);
     const [venmoIds, setVenmoIds] = useState({});
@@ -141,12 +138,6 @@ const PokerLedger = () => {
         return settlements;
     };
 
-    const handlePlayerSelect = (e) => {
-        const playerId = e.target.value;
-        setSelectedPlayer(playerId);
-        
-        // No need to update venmoIds here anymore since we're using player IDs as keys
-    };
 
     const fetchVenmoIds = async (playersInfos) => {
         if (!playersInfos) return;
@@ -166,63 +157,6 @@ const PokerLedger = () => {
         }
     };
 
-    const handleSaveSettings = async () => {
-        if (!selectedPlayer) {
-            setError('Please select a player first');
-            return;
-        }
-
-        // Additional validation
-        const venmoIdRegex = /^@?[\w.-]+$/;
-        const venmoId = venmoIds[selectedPlayer] || '';
-        if (!venmoIdRegex.test(venmoId)) {
-            setError('Invalid Venmo ID format');
-            return;
-        }
-
-        try {
-            // Find the player in the playersInfos array
-            const player = selectedGame.playersInfos.find(p => p.id === selectedPlayer);
-            if (!player) {
-                throw new Error('Selected player not found');
-            }
-
-            const playerName = player.name;
-            if (!playerName) {
-                throw new Error('Player name not found');
-            }
-
-            if (!db) {
-                throw new Error('Firebase database not initialized');
-            }
-
-            // Save to Firebase
-            await setDoc(doc(db, 'venmoIds', selectedPlayer), {
-                playerName: playerName,
-                pokerNowId: selectedPlayer,
-                venmoId: venmoId,
-                updatedAt: new Date().toISOString()
-            });
-
-            // Update local state immediately using player ID as key
-            setVenmoIds(prev => ({
-                ...prev,
-                [selectedPlayer]: venmoId
-            }));
-
-            // Add success notification
-            setNotification({
-                type: 'success',
-                message: 'Venmo ID saved successfully!'
-            });
-
-            // Clear any existing errors
-            setError(null);
-        } catch (error) {
-            console.error('Error saving settings:', error);
-            setError('Failed to save settings. Please try again.');
-        }
-    };
 
     const getSortedPlayers = (ledgerData) => {
         if (!ledgerData?.playersInfos) return [];
@@ -239,9 +173,6 @@ const PokerLedger = () => {
         })).sort((a, b) => b.net - a.net);
     };
 
-    const getPlayerNameById = (playersInfos, id) => {
-        return playersInfos[id]?.names[0] || '';
-    };
 
     const handleSettleUp = (settlement, isRequest = false) => {
         const player = isRequest ? settlement.from : settlement.to;
@@ -397,7 +328,6 @@ const PokerLedger = () => {
     };
 
     const players = getSortedPlayers(selectedGame);
-    const results = getSortedResults(players);
 
     const validateLeague = async () => {
         if (!selectedLeague) return;
@@ -438,7 +368,7 @@ const PokerLedger = () => {
     };
 
     // Add this function to fetch games when a league is validated
-    const fetchLeagueGames = async () => {
+    const fetchLeagueGames = useCallback(async () => {
         if (!selectedLeague || !isLeagueValidated) return;
         
         try {
@@ -453,22 +383,19 @@ const PokerLedger = () => {
             // Sort games by createdAt date, most recent first
             gamesData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             
-            setLeagueGames(gamesData);
             setGames(gamesData);
         } catch (error) {
             console.error('Error fetching league games:', error);
             setGamesError('Failed to load league games');
         }
-    };
+    }, [selectedLeague, isLeagueValidated]);
 
     // Add this to your validateLeagueCode function, after validation succeeds
     useEffect(() => {
         if (isLeagueValidated && selectedLeague) {
             fetchLeagueGames();
-        } else {
-            setLeagueGames([]);
         }
-    }, [isLeagueValidated, selectedLeague]);
+    }, [isLeagueValidated, selectedLeague, fetchLeagueGames]);
 
     const fetchGames = async (leagueId) => {
         if (!leagueId) return;
