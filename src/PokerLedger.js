@@ -158,20 +158,6 @@ const PokerLedger = () => {
     };
 
 
-    const getSortedPlayers = (ledgerData) => {
-        if (!ledgerData?.playersInfos) return [];
-        return [...ledgerData.playersInfos].sort((a, b) => (b.stack || 0) - (a.stack || 0));
-    };
-
-    const getSortedResults = (players) => {
-        if (!players || !Array.isArray(players)) return [];
-        return players.map(player => ({
-            name: player.name || '',
-            stack: player.stack || 0,
-            totalBuyIn: player.totalBuyIn || 0,
-            net: (player.stack || 0) - (player.totalBuyIn || 0)
-        })).sort((a, b) => b.net - a.net);
-    };
 
 
     const handleSettleUp = (settlement, isRequest = false) => {
@@ -188,25 +174,17 @@ const PokerLedger = () => {
 
         const cleanAmount = (settlement.amount / 100).toFixed(2);
         
-        // Format the game start date
-        let dateString = '';
+        // Format the note as "TLOnline-MM.DD.YY" (spaces replaced with dashes)
+        let noteText = 'TLOnline';
         if (selectedGame?.startTime) {
             const gameDate = new Date(selectedGame.startTime);
-            dateString = gameDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
+            const month = String(gameDate.getMonth() + 1).padStart(2, '0');
+            const day = String(gameDate.getDate()).padStart(2, '0');
+            const year = String(gameDate.getFullYear()).slice(-2);
+            noteText = `TLOnline-${month}.${day}.${year}`;
         }
         
-        // Create the note with date if available
-        const noteText = dateString 
-            ? `TL Online - ${dateString}`
-            : 'TL Online';
-        // Use encodeURIComponent and replace %20 with + for better mobile compatibility
-        const encodedNote = encodeURIComponent(noteText).replace(/%20/g, '+');
-        
-        const venmoUrl = `https://venmo.com/${recipientVenmoId}?txn=${isRequest ? 'request' : 'pay'}&note=${encodedNote}&amount=${cleanAmount}`;
+        const venmoUrl = `https://venmo.com/${recipientVenmoId}?txn=${isRequest ? 'request' : 'pay'}&note=${encodeURIComponent(noteText)}&amount=${cleanAmount}`;
         window.open(venmoUrl, '_blank');
     };
 
@@ -327,8 +305,6 @@ const PokerLedger = () => {
             alert(`Error uploading file: ${error.message}`);
         }
     };
-
-    const players = getSortedPlayers(selectedGame);
 
     const validateLeague = async () => {
         if (!selectedLeague) return;
