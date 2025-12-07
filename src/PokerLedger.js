@@ -256,7 +256,25 @@ const PokerLedger = () => {
         }
 
         const cleanAmount = (settlement.amount / 100).toFixed(2);
-        const venmoUrl = `https://venmo.com/${recipientVenmoId}?txn=${isRequest ? 'request' : 'pay'}&note=TL%20Online&amount=${cleanAmount}`;
+        
+        // Format the game start date
+        let dateString = '';
+        if (selectedGame?.startTime) {
+            const gameDate = new Date(selectedGame.startTime);
+            dateString = gameDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+        
+        // Create the note with date if available
+        const noteText = dateString 
+            ? `TL Online - ${dateString}`
+            : 'TL Online';
+        const encodedNote = encodeURIComponent(noteText);
+        
+        const venmoUrl = `https://venmo.com/${recipientVenmoId}?txn=${isRequest ? 'request' : 'pay'}&note=${encodedNote}&amount=${cleanAmount}`;
         window.open(venmoUrl, '_blank');
     };
 
