@@ -30,12 +30,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      # Add your deployment step here, for example using Vercel:
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.ORG_ID}}
-          vercel-project-id: ${{ secrets.PROJECT_ID}}
-          vercel-args: '--prod' 
