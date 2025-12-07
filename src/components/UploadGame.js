@@ -267,10 +267,10 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
         }));
     };
 
-    const handleNameSelection = (groupIndex, name) => {
+    const handleNameSelection = (groupIndex, playerId, name) => {
         setSelectedNames(prev => ({
             ...prev,
-            [groupIndex]: name
+            [groupIndex]: { playerId, name }
         }));
     };
 
@@ -309,7 +309,8 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                     const primaryId = playerWithVenmo ? playerWithVenmo.playerId : selectedIds[0];
                     
                     if (selectedNames[groupIndex]) {
-                        nameMapping[primaryId] = selectedNames[groupIndex];
+                        // selectedNames now stores { playerId, name }, extract the name
+                        nameMapping[primaryId] = selectedNames[groupIndex].name;
                     }
                     
                     selectedIds
@@ -322,7 +323,8 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                     const primaryId = selectedIds[0];
                     
                     if (selectedNames[groupIndex]) {
-                        nameMapping[primaryId] = selectedNames[groupIndex];
+                        // selectedNames now stores { playerId, name }, extract the name
+                        nameMapping[primaryId] = selectedNames[groupIndex].name;
                     }
                     
                     selectedIds
@@ -706,8 +708,8 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                                             <Box sx={{ width: 120, display: 'flex', justifyContent: 'center' }}>
                                                 {selectedDuplicates[groupIndex]?.[player.player_id] && (
                                                     <Radio
-                                                        checked={selectedNames[groupIndex] === player.player_nickname}
-                                                        onChange={() => handleNameSelection(groupIndex, player.player_nickname)}
+                                                        checked={selectedNames[groupIndex]?.playerId === player.player_id}
+                                                        onChange={() => handleNameSelection(groupIndex, player.player_id, player.player_nickname)}
                                                     />
                                                 )}
                                             </Box>
