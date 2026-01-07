@@ -128,7 +128,7 @@ export const Rules = () => {
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Creating New Action:</strong> If players want different stakes or variations, they must create a new, separate table. Let the market decide which game runs!
+                                <strong>Creating New Action:</strong> If players want different stakes, variations, or table rules, they must create a new, separate table. Let the market decide which game runs!
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
