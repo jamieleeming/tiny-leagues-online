@@ -11,6 +11,7 @@ import {
     limit
 } from 'firebase/firestore';
 import { fetchVenmoIdsBatch } from './utils/venmoIds';
+import { queryTracker } from './utils/queryTracker';
 import { LeaguePassword } from './components/LeaguePassword';
 import { GameSelector } from './components/GameSelector';
 import { PlayerDetails } from './components/PlayerDetails';
@@ -345,6 +346,9 @@ const PokerLedger = () => {
             // Games are already sorted by the query, but keep this for safety
             gamesData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             
+            // Track the query (limit(100) means it was limited)
+            queryTracker.trackGamesFetch(gamesData.length, true);
+            
             setGames(gamesData);
         } catch (error) {
             console.error('Error fetching league games:', error);
@@ -376,6 +380,9 @@ const PokerLedger = () => {
                 id: doc.id,
                 ...doc.data()
             }));
+            
+            // Track the query (limit(100) means it was limited)
+            queryTracker.trackGamesFetch(gamesList.length, true);
             
             setGames(gamesList);
         } catch (err) {

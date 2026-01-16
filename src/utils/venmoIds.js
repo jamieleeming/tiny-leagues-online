@@ -10,8 +10,9 @@
  * It cannot be used to enumerate or access Venmo IDs for players not in the current game.
  */
 
-import { doc, getDoc, getDocs } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { queryTracker } from './queryTracker';
 
 /**
  * Fetches Venmo IDs for specific player IDs using batch operations
@@ -81,6 +82,9 @@ export const fetchVenmoIdsBatch = async (playerIds) => {
         batchResults.forEach(result => {
             Object.assign(venmoData, result);
         });
+        
+        // Track the query
+        queryTracker.trackVenmoBatch(uniquePlayerIds.length, batches.length);
         
         return venmoData;
     } catch (error) {
