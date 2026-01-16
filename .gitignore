@@ -31,3 +31,4 @@ scripts/exportGameResults.js
 scripts/findPlayerGames.js
 SECURITY_IMPLEMENTATION.md
 MONITORING_GUIDE.md
+scripts/venmoBuyInTotals.js

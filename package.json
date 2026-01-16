@@ -33,7 +33,8 @@
     "generate-icon": "node scripts/generateIcon.js",
     "find-player-games": "node scripts/findPlayerGames.js",
     "analyze-money-flow": "node scripts/analyzeMoneyFlow.js",
-    "export-game-results": "node scripts/exportGameResults.js"
+    "export-game-results": "node scripts/exportGameResults.js",
+    "venmo-buyin-totals": "node scripts/venmoBuyInTotals.js"
   },
   "eslintConfig": {
     "extends": [
