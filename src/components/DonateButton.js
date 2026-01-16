@@ -11,7 +11,10 @@ import {
     Alert,
     Divider,
     Grid,
-    IconButton
+    IconButton,
+    useMediaQuery,
+    useTheme,
+    Collapse
 } from '@mui/material';
 import {
     LocalCafe as CoffeeIcon,
@@ -20,10 +23,13 @@ import {
 import { VenmoIcon } from './icons/VenmoIcon';
 
 export const DonateButton = () => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [open, setOpen] = useState(false);
     const [customAmount, setCustomAmount] = useState('');
     const [selectedAmount, setSelectedAmount] = useState(null);
     const [error, setError] = useState('');
+    const [showLegalNotice, setShowLegalNotice] = useState(false);
 
     // Preset donation amounts
     const presetAmounts = [5, 10, 20, 50];
@@ -125,12 +131,18 @@ export const DonateButton = () => {
                 onClose={handleClose}
                 maxWidth="sm"
                 fullWidth
+                fullScreen={isMobile}
             >
-                <DialogTitle>
+                <DialogTitle sx={{ 
+                    pb: isMobile ? 1 : 2,
+                    pt: isMobile ? 2 : 3
+                }}>
                     <Box display="flex" justifyContent="space-between" alignItems="center">
                         <Box display="flex" alignItems="center" gap={1}>
-                            <CoffeeIcon color="primary" />
-                            <Typography variant="h6">Support Tiny Leagues Online</Typography>
+                            <CoffeeIcon color="primary" sx={{ fontSize: isMobile ? '1.5rem' : 'inherit' }} />
+                            <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                                {isMobile ? 'Support Tiny Leagues' : 'Support Tiny Leagues Online'}
+                            </Typography>
                         </Box>
                         <IconButton
                             edge="end"
@@ -142,35 +154,40 @@ export const DonateButton = () => {
                     </Box>
                 </DialogTitle>
                 
-                <DialogContent>
-                    <Alert severity="info" sx={{ mb: 3 }}>
-                        <Typography variant="body2">
+                <DialogContent sx={{ 
+                    px: isMobile ? 2 : 3,
+                    pb: isMobile ? 1 : 2
+                }}>
+                    <Alert severity="info" sx={{ mb: isMobile ? 2 : 3, py: isMobile ? 1 : 1.5 }}>
+                        <Typography variant="body2" sx={{ fontSize: isMobile ? '0.875rem' : 'inherit' }}>
                             <strong>Voluntary Donation:</strong> This is completely optional and separate from all game funds. 
                             Donations help cover hosting, maintenance, and development costs.
                         </Typography>
                     </Alert>
 
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ 
+                        mb: isMobile ? 2 : 3,
+                        fontSize: isMobile ? '0.875rem' : 'inherit'
+                    }}>
                         Your support helps keep Tiny Leagues Online running smoothly. All donations go directly to 
                         maintaining the platform and community infrastructure.
                     </Typography>
 
-                    <Divider sx={{ my: 3 }} />
-
-                    <Typography variant="subtitle2" gutterBottom sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom sx={{ mb: isMobile ? 1.5 : 2, mt: isMobile ? 1 : 2 }}>
                         Select Amount
                     </Typography>
 
-                    <Grid container spacing={2} sx={{ mb: 3 }}>
+                    <Grid container spacing={isMobile ? 1.5 : 2} sx={{ mb: isMobile ? 2 : 3 }}>
                         {presetAmounts.map((amount) => (
-                            <Grid item xs={6} sm={3} key={amount}>
+                            <Grid item xs={6} key={amount}>
                                 <Button
                                     fullWidth
                                     variant={selectedAmount === amount ? 'contained' : 'outlined'}
                                     onClick={() => handlePresetClick(amount)}
                                     sx={{
-                                        minHeight: '48px',
-                                        fontWeight: selectedAmount === amount ? 600 : 400
+                                        minHeight: isMobile ? '44px' : '48px',
+                                        fontWeight: selectedAmount === amount ? 600 : 400,
+                                        fontSize: isMobile ? '1rem' : 'inherit'
                                     }}
                                 >
                                     ${amount}
@@ -179,8 +196,8 @@ export const DonateButton = () => {
                         ))}
                     </Grid>
 
-                    <Typography variant="subtitle2" gutterBottom sx={{ mb: 1, mt: 2 }}>
-                        Or Enter Custom Amount
+                    <Typography variant="subtitle2" gutterBottom sx={{ mb: 1 }}>
+                        Or Custom Amount
                     </Typography>
 
                     <TextField
@@ -190,7 +207,7 @@ export const DonateButton = () => {
                         value={customAmount}
                         onChange={handleCustomAmountChange}
                         error={!!error}
-                        helperText={error || 'Minimum $1.00, Maximum $1,000.00'}
+                        helperText={error || (isMobile ? '$1-$1,000' : 'Minimum $1.00, Maximum $1,000.00')}
                         InputProps={{
                             startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>
                         }}
@@ -199,50 +216,95 @@ export const DonateButton = () => {
                             max: 1000,
                             step: 0.01
                         }}
-                        sx={{ mb: 2 }}
+                        size={isMobile ? 'small' : 'medium'}
+                        sx={{ mb: isMobile ? 2 : 2 }}
                     />
 
-                    <Divider sx={{ my: 3 }} />
+                    {!isMobile && (
+                        <>
+                            <Divider sx={{ my: 2 }} />
+                            <Alert severity="warning" sx={{ mb: 2 }}>
+                                <Typography variant="body2" component="div">
+                                    <strong>Important Legal Notice:</strong>
+                                    <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
+                                        <li>Donations are voluntary and completely separate from game funds</li>
+                                        <li>Donations do not affect gameplay, settlements, or any game-related transactions</li>
+                                        <li>Donations are not tax-deductible</li>
+                                        <li>All donations are final and non-refundable</li>
+                                    </ul>
+                                </Typography>
+                            </Alert>
+                        </>
+                    )}
 
-                    <Alert severity="warning" sx={{ mb: 2 }}>
-                        <Typography variant="body2" component="div">
-                            <strong>Important Legal Notice:</strong>
-                            <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
-                                <li>Donations are voluntary and completely separate from game funds</li>
-                                <li>Donations do not affect gameplay, settlements, or any game-related transactions</li>
-                                <li>Donations are not tax-deductible</li>
-                                <li>All donations are final and non-refundable</li>
-                            </ul>
-                        </Typography>
-                    </Alert>
+                    {isMobile && (
+                        <Box sx={{ mb: 2 }}>
+                            <Button
+                                fullWidth
+                                onClick={() => setShowLegalNotice(!showLegalNotice)}
+                                size="small"
+                                sx={{ 
+                                    textTransform: 'none',
+                                    justifyContent: 'flex-start',
+                                    color: 'text.secondary'
+                                }}
+                            >
+                                {showLegalNotice ? 'Hide' : 'Show'} Legal Notice
+                            </Button>
+                            <Collapse in={showLegalNotice}>
+                                <Alert severity="warning" sx={{ mt: 1 }}>
+                                    <Typography variant="body2" component="div" sx={{ fontSize: '0.875rem' }}>
+                                        <strong>Important Legal Notice:</strong>
+                                        <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
+                                            <li>Donations are voluntary and completely separate from game funds</li>
+                                            <li>Donations do not affect gameplay, settlements, or any game-related transactions</li>
+                                            <li>Donations are not tax-deductible</li>
+                                            <li>All donations are final and non-refundable</li>
+                                        </ul>
+                                    </Typography>
+                                </Alert>
+                            </Collapse>
+                        </Box>
+                    )}
 
                     <Box sx={{ 
                         display: 'flex', 
                         alignItems: 'center', 
                         gap: 1, 
-                        p: 2, 
+                        p: isMobile ? 1.5 : 2, 
                         bgcolor: 'background.default',
                         borderRadius: 1
                     }}>
-                        <VenmoIcon />
-                        <Typography variant="body2" color="text.secondary">
-                            Donations are processed through Venmo
+                        <VenmoIcon sx={{ fontSize: isMobile ? '1.25rem' : 'inherit' }} />
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: isMobile ? '0.875rem' : 'inherit' }}>
+                            Processed via Venmo
                         </Typography>
                     </Box>
                 </DialogContent>
 
-                <DialogActions sx={{ p: 2, pt: 1 }}>
-                    <Button onClick={handleClose} color="inherit">
+                <DialogActions sx={{ 
+                    p: isMobile ? 2 : 2, 
+                    pt: isMobile ? 1 : 1,
+                    gap: isMobile ? 1 : 0
+                }}>
+                    <Button 
+                        onClick={handleClose} 
+                        color="inherit"
+                        size={isMobile ? 'medium' : 'large'}
+                        sx={{ minWidth: isMobile ? '80px' : 'auto' }}
+                    >
                         Cancel
                     </Button>
                     <Button
                         onClick={handleDonate}
                         variant="contained"
                         color="primary"
-                        startIcon={<CoffeeIcon />}
+                        startIcon={!isMobile ? <CoffeeIcon /> : null}
                         disabled={!selectedAmount && !customAmount}
+                        size={isMobile ? 'medium' : 'large'}
+                        fullWidth={isMobile}
                     >
-                        Support via Venmo
+                        {isMobile ? 'Support' : 'Support via Venmo'}
                     </Button>
                 </DialogActions>
             </Dialog>
