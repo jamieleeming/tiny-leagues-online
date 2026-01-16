@@ -16,6 +16,7 @@ import {
     Brightness4 as MoonIcon,
     Brightness7 as SunIcon
 } from '@mui/icons-material';
+import { DonateButton } from './DonateButton';
 
 const TLLogo = () => {
     const theme = useTheme();
@@ -174,6 +175,7 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
                             >
                                 Rules
                             </Button>
+                            <DonateButton />
                             <IconButton 
                                 onClick={onToggleDarkMode}
                                 color="inherit"
