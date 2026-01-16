@@ -24,3 +24,9 @@ yarn-error.log*
 
 # Reference files
 reference_files/
+*.csv
+DATABASE_QUERY_EFFICIENCY_REPORT.md
+scripts/analyzeMoneyFlow.js
+scripts/exportGameResults.js
+scripts/findPlayerGames.js
+SECURITY_IMPLEMENTATION.md

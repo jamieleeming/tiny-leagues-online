@@ -14,6 +14,7 @@ import { Casino as DiceIcon } from '@mui/icons-material';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UploadGame } from './UploadGame';
+import { fetchVenmoIdsBatch } from '../utils/venmoIds';
 
 export const GameSelector = ({ 
     selectedGame, 
@@ -69,20 +70,11 @@ export const GameSelector = ({
             setLedgerData(gameData.sessionResults);
 
             // Get array of player IDs from the session results
-            const playerIds = gameData.sessionResults.map(player => player.id);
+            const playerIds = gameData.sessionResults?.map(player => player.id) || [];
 
-            // Fetch Venmo IDs for players
-            const venmoData = {};
-            for (const playerId of playerIds) {
-                try {
-                    const venmoDoc = await getDoc(doc(db, 'venmoIds', playerId));
-                    if (venmoDoc.exists()) {
-                        venmoData[playerId] = venmoDoc.data().venmoId;
-                    }
-                } catch (err) {
-                    // Silently fail for individual Venmo ID fetches
-                }
-            }
+            // Fetch Venmo IDs for players using secure batch fetch
+            // Security: Only fetches Venmo IDs for players in this specific game
+            const venmoData = await fetchVenmoIdsBatch(playerIds);
 
             setVenmoIds(venmoData);
         } catch (err) {

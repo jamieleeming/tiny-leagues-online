@@ -9,6 +9,7 @@ import {
     query,
     orderBy
 } from 'firebase/firestore';
+import { fetchVenmoIdsBatch } from './utils/venmoIds';
 import { LeaguePassword } from './components/LeaguePassword';
 import { GameSelector } from './components/GameSelector';
 import { PlayerDetails } from './components/PlayerDetails';
@@ -120,20 +121,20 @@ const PokerLedger = () => {
 
 
     const fetchVenmoIds = async (playersInfos) => {
-        if (!playersInfos) return;
+        if (!playersInfos || !Array.isArray(playersInfos)) return;
         
         try {
-            const venmoData = {};
-            for (const player of playersInfos) {
-                const venmoDoc = await getDoc(doc(db, 'venmoIds', player.id));
-                if (venmoDoc.exists()) {
-                    // Store using player ID as key instead of name
-                    venmoData[player.id] = venmoDoc.data().venmoId;
-                }
-            }
+            // Extract player IDs from the players info
+            const playerIds = playersInfos.map(player => player.id).filter(Boolean);
+            
+            // Use secure batch fetch - only fetches Venmo IDs for players in the current game
+            // Security: This maintains the same security boundaries as individual fetches
+            const venmoData = await fetchVenmoIdsBatch(playerIds);
+            
             setVenmoIds(venmoData);
         } catch (error) {
             console.error('Error fetching Venmo IDs:', error);
+            setVenmoIds({});
         }
     };
 
