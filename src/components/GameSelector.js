@@ -11,8 +11,6 @@ import {
     Divider
 } from '@mui/material';
 import { Casino as DiceIcon } from '@mui/icons-material';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
 import { UploadGame } from './UploadGame';
 import { fetchVenmoIdsBatch } from '../utils/venmoIds';
 
@@ -35,15 +33,30 @@ export const GameSelector = ({
         setSelectedPlayer('');
     };
 
-    // Filter games from last week and sort by startTime in descending order
-    const sortedGames = [...games]
-        .filter(game => {
-            const gameDate = new Date(game.startTime);
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            return gameDate >= oneWeekAgo;
-        })
-        .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+    // Filter and sort games:
+    // 1. Show games from last 7 days, up to max 20 games
+    // 2. OR if no games in last 7 days, show last 5 games (regardless of date)
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    // Sort all games by startTime descending (most recent first)
+    const allGamesSorted = [...games].sort((a, b) => {
+        const dateA = new Date(a.startTime || a.createdAt || 0);
+        const dateB = new Date(b.startTime || b.createdAt || 0);
+        return dateB - dateA;
+    });
+    
+    // Filter games from last 7 days
+    const recentGames = allGamesSorted.filter(game => {
+        const gameDate = new Date(game.startTime || game.createdAt);
+        return gameDate >= oneWeekAgo;
+    });
+    
+    // If we have recent games, show up to 20 of them
+    // Otherwise, show the last 5 games (regardless of date)
+    const sortedGames = recentGames.length > 0 
+        ? recentGames.slice(0, 20)
+        : allGamesSorted.slice(0, 5);
 
     const handleGameClick = async (game) => {
         // Reset all states first
@@ -55,22 +68,22 @@ export const GameSelector = ({
         }
 
         try {
-            const gameDoc = await getDoc(doc(db, 'leagues', selectedLeague, 'games', game.id));
-            if (!gameDoc.exists()) {
-                return;
-            }
-
+            // Use game data already available in the games array
+            // This eliminates an unnecessary database read
             const gameData = {
-                id: gameDoc.id,
-                ...gameDoc.data()
+                id: game.id,
+                ...game
             };
 
             // Set new game data after resetting states
             setSelectedGame(gameData);
-            setLedgerData(gameData.sessionResults);
+            
+            // Handle both sessionResults (newer format) and playersInfos (older format)
+            const playerData = gameData.sessionResults || gameData.playersInfos || [];
+            setLedgerData(playerData);
 
             // Get array of player IDs from the session results
-            const playerIds = gameData.sessionResults?.map(player => player.id) || [];
+            const playerIds = playerData.map(player => player.id).filter(Boolean);
 
             // Fetch Venmo IDs for players using secure batch fetch
             // Security: Only fetches Venmo IDs for players in this specific game
@@ -78,6 +91,7 @@ export const GameSelector = ({
 
             setVenmoIds(venmoData);
         } catch (err) {
+            console.error('Error handling game selection:', err);
             setVenmoIds({});
         }
     };

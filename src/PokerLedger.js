@@ -7,7 +7,8 @@ import {
     getDocs,
     getDoc,
     query,
-    orderBy
+    orderBy,
+    limit
 } from 'firebase/firestore';
 import { fetchVenmoIdsBatch } from './utils/venmoIds';
 import { LeaguePassword } from './components/LeaguePassword';
@@ -331,14 +332,17 @@ const PokerLedger = () => {
         
         try {
             const gamesRef = collection(db, 'leagues', selectedLeague, 'games');
-            const gamesSnapshot = await getDocs(gamesRef);
+            // Limit to last 100 games - frontend only displays games from last 7 days anyway
+            // This significantly reduces database reads for leagues with many games
+            const q = query(gamesRef, orderBy('createdAt', 'desc'), limit(100));
+            const gamesSnapshot = await getDocs(q);
             
             const gamesData = gamesSnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
             
-            // Sort games by createdAt date, most recent first
+            // Games are already sorted by the query, but keep this for safety
             gamesData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             
             setGames(gamesData);
@@ -363,7 +367,9 @@ const PokerLedger = () => {
         
         try {
             const gamesRef = collection(db, 'leagues', leagueId, 'games');
-            const q = query(gamesRef, orderBy('createdAt', 'desc'));
+            // Limit to last 100 games - frontend only displays games from last 7 days anyway
+            // This significantly reduces database reads for leagues with many games
+            const q = query(gamesRef, orderBy('createdAt', 'desc'), limit(100));
             const querySnapshot = await getDocs(q);
             
             const gamesList = querySnapshot.docs.map(doc => ({
@@ -390,10 +396,14 @@ const PokerLedger = () => {
         setSelectedPlayer('');
     }, [selectedLeague]);
 
-    // Also call fetchVenmoIds when a game is selected
+    // Also call fetchVenmoIds when a game is selected (fallback for older games)
     useEffect(() => {
-        if (selectedGame?.playersInfos) {
-            fetchVenmoIds(selectedGame.playersInfos);
+        if (selectedGame) {
+            // Handle both sessionResults (newer format) and playersInfos (older format)
+            const playerData = selectedGame.sessionResults || selectedGame.playersInfos;
+            if (playerData) {
+                fetchVenmoIds(playerData);
+            }
         }
     }, [selectedGame]);
 
