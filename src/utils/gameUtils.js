@@ -16,7 +16,7 @@ export const extractGameId = (url) => {
   }
   
   // Match pokernow.club or pokernow.com /games/{gameId} (with or without www.)
-  const match = url.match(/pokernow\.(club|com)\/games\/([^\/\?]+)/);
+  const match = url.match(/pokernow\.(club|com)\/games\/([^/?]+)/);
   return match ? match[2] : null;
 };
 

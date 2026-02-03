@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import {
     Container,
     Card,
@@ -13,7 +13,6 @@ import {
     List,
     ListItem,
     ListItemText,
-    Paper,
     Divider,
     Snackbar
 } from '@mui/material';
@@ -43,7 +42,6 @@ import { LeaguePassword } from './LeaguePassword';
 
 export const ActiveGames = () => {
     const location = useLocation();
-    const navigate = useNavigate();
     const gameRefs = useRef({});
     
     const [selectedLeague, setSelectedLeague] = useState('');
