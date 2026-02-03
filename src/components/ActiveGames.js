@@ -408,7 +408,7 @@ export const ActiveGames = () => {
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h4" component="h1">
-                    Active Games
+                    Games
                 </Typography>
                 <Button
                     variant="contained"

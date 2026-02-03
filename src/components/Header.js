@@ -71,7 +71,7 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const location = useLocation();
     
-    // Check if user has league access to show Active Games button
+    // Check if user has league access to show Games button
     // Use state and effect to make it reactive to changes
     const [hasLeague, setHasLeague] = useState(false);
     
@@ -209,7 +209,7 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
                                         }
                                     }}
                                 >
-                                    Active Games
+                                    Games
                                 </Button>
                             )}
                             {hasLeague && (
