@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
     AppBar, 
@@ -17,6 +17,7 @@ import {
     Brightness7 as SunIcon
 } from '@mui/icons-material';
 import { DonateButton } from './DonateButton';
+import { hasLeagueAccess } from '../utils/leagueAuth';
 
 const TLLogo = () => {
     const theme = useTheme();
@@ -69,6 +70,38 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const location = useLocation();
+    
+    // Check if user has league access to show Active Games button
+    // Use state and effect to make it reactive to changes
+    const [hasLeague, setHasLeague] = useState(false);
+    
+    useEffect(() => {
+        const checkLeagueAccess = () => {
+            const storedLeague = typeof window !== 'undefined' ? localStorage.getItem('lastLeague') : null;
+            setHasLeague(storedLeague && hasLeagueAccess(storedLeague));
+        };
+        
+        // Check on mount and when location changes
+        checkLeagueAccess();
+        
+        // Listen for storage changes (when league is validated in another component)
+        const handleStorageChange = (e) => {
+            if (e.key === 'lastLeague' || e.key === null) {
+                checkLeagueAccess();
+            }
+        };
+        
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also check periodically in case localStorage is updated in same window
+        // (storage event only fires for changes in other windows/tabs)
+        const interval = setInterval(checkLeagueAccess, 1000);
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            clearInterval(interval);
+        };
+    }, [location]);
 
     return (
         <AppBar 
@@ -141,40 +174,63 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
                             width={{ xs: '100%', sm: 'auto' }}
                             justifyContent={{ xs: 'center', sm: 'flex-end' }}
                         >
-                            <Button
-                                component={Link}
-                                to="/"
-                                sx={{
-                                    color: location.pathname === '/' 
-                                        ? theme.palette.primary.main 
-                                        : 'text.primary',
-                                    textTransform: 'none',
-                                    fontWeight: location.pathname === '/' ? 600 : 400,
-                                    '&:hover': {
-                                        backgroundColor: 'transparent',
-                                        color: theme.palette.primary.main
-                                    }
-                                }}
-                            >
-                                Games
-                            </Button>
-                            <Button
-                                component={Link}
-                                to="/rules"
-                                sx={{
-                                    color: location.pathname === '/rules' 
-                                        ? theme.palette.primary.main 
-                                        : 'text.primary',
-                                    textTransform: 'none',
-                                    fontWeight: location.pathname === '/rules' ? 600 : 400,
-                                    '&:hover': {
-                                        backgroundColor: 'transparent',
-                                        color: theme.palette.primary.main
-                                    }
-                                }}
-                            >
-                                Rules
-                            </Button>
+                            {hasLeague && (
+                                <Button
+                                    component={Link}
+                                    to="/"
+                                    sx={{
+                                        color: location.pathname === '/' 
+                                            ? theme.palette.primary.main 
+                                            : 'text.primary',
+                                        textTransform: 'none',
+                                        fontWeight: location.pathname === '/' ? 600 : 400,
+                                        '&:hover': {
+                                            backgroundColor: 'transparent',
+                                            color: theme.palette.primary.main
+                                        }
+                                    }}
+                                >
+                                    Ledgers
+                                </Button>
+                            )}
+                            {hasLeague && (
+                                <Button
+                                    component={Link}
+                                    to="/active-games"
+                                    sx={{
+                                        color: location.pathname === '/active-games' 
+                                            ? theme.palette.primary.main 
+                                            : 'text.primary',
+                                        textTransform: 'none',
+                                        fontWeight: location.pathname === '/active-games' ? 600 : 400,
+                                        '&:hover': {
+                                            backgroundColor: 'transparent',
+                                            color: theme.palette.primary.main
+                                        }
+                                    }}
+                                >
+                                    Active Games
+                                </Button>
+                            )}
+                            {hasLeague && (
+                                <Button
+                                    component={Link}
+                                    to="/rules"
+                                    sx={{
+                                        color: location.pathname === '/rules' 
+                                            ? theme.palette.primary.main 
+                                            : 'text.primary',
+                                        textTransform: 'none',
+                                        fontWeight: location.pathname === '/rules' ? 600 : 400,
+                                        '&:hover': {
+                                            backgroundColor: 'transparent',
+                                            color: theme.palette.primary.main
+                                        }
+                                    }}
+                                >
+                                    Rules
+                                </Button>
+                            )}
                             <DonateButton />
                             <IconButton 
                                 onClick={onToggleDarkMode}

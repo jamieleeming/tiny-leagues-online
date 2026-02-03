@@ -5,6 +5,7 @@ import './App.css';
 import PokerLedger from './PokerLedger';
 import { Rules } from './components/Rules';
 import { Header } from './components/Header';
+import { ActiveGames } from './components/ActiveGames';
 
 function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
@@ -38,6 +39,7 @@ function App() {
           />
           <Routes>
             <Route path="/rules" element={<Rules />} />
+            <Route path="/active-games" element={<ActiveGames />} />
             <Route path="/" element={<PokerLedger />} />
           </Routes>
         </div>

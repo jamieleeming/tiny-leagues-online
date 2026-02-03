@@ -8,14 +8,85 @@ import {
     Fade,
     Divider
 } from '@mui/material';
+import { db } from '../firebase';
+import { getDoc, doc } from 'firebase/firestore';
+import { hasLeagueAccess, saveLeagueAccess } from '../utils/leagueAuth';
+import { LeaguePassword } from './LeaguePassword';
 
 export const Rules = () => {
     const [fadeIn, setFadeIn] = useState(false);
+    const [selectedLeague, setSelectedLeague] = useState('');
+    const [isLeagueValidated, setIsLeagueValidated] = useState(false);
+    const [leagueError, setLeagueError] = useState(null);
+    const [showLeaguePassword, setShowLeaguePassword] = useState(false);
 
+    // Check for league access on mount
     useEffect(() => {
-        // Trigger fade-in after component mounts
-        setFadeIn(true);
+        const storedLeague = localStorage.getItem('lastLeague');
+        if (storedLeague && hasLeagueAccess(storedLeague)) {
+            setSelectedLeague(storedLeague);
+            setIsLeagueValidated(true);
+            setShowLeaguePassword(false);
+            setFadeIn(true);
+        } else {
+            setShowLeaguePassword(true);
+        }
     }, []);
+
+    const validateLeague = async () => {
+        if (!selectedLeague) return;
+        
+        try {
+            // Check if league exists in Firestore
+            const leagueDoc = await getDoc(doc(db, 'leagues', selectedLeague));
+            
+            if (!leagueDoc.exists()) {
+                setLeagueError('League not found. Please check the code and try again.');
+                return;
+            }
+            
+            // League exists, save access token
+            saveLeagueAccess(selectedLeague);
+            
+            // Store the last used league for convenience
+            localStorage.setItem('lastLeague', selectedLeague);
+            
+            setIsLeagueValidated(true);
+            setLeagueError(null);
+            
+            // After a delay, hide the league password component
+            setTimeout(() => {
+                setShowLeaguePassword(false);
+                setFadeIn(true);
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Error validating league:', error);
+            setLeagueError('Error validating league. Please try again.');
+        }
+    };
+
+    const handleValidationComplete = () => {
+        // This callback is called after the fade-out animation completes
+        // No action needed here
+    };
+
+    // Show league password if not validated
+    if (showLeaguePassword || !isLeagueValidated || !selectedLeague) {
+        return (
+            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                <LeaguePassword 
+                    selectedLeague={selectedLeague}
+                    setSelectedLeague={setSelectedLeague}
+                    isLeagueValidated={isLeagueValidated}
+                    validateLeague={validateLeague}
+                    leagueError={leagueError}
+                    setLeagueError={setLeagueError}
+                    onValidationComplete={handleValidationComplete}
+                />
+            </Container>
+        );
+    }
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>

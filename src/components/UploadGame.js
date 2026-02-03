@@ -612,7 +612,7 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
 
             setNotification({
                 open: true,
-                message: 'Game data uploaded successfully',
+                message: 'Ledger uploaded successfully',
                 severity: 'success'
             });
 
@@ -673,7 +673,7 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                 onClick={() => fileInputRef.current.click()}
                 disabled={isUploading || !selectedLeague}
             >
-                Upload Game
+                Upload Ledger
             </Button>
             
             <NicknameModal 
