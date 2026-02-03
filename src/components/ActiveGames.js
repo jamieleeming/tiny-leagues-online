@@ -15,7 +15,8 @@ import {
     ListItemText,
     Divider,
     Snackbar,
-    Grid
+    Grid,
+    Fade
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -52,6 +53,7 @@ export const ActiveGames = () => {
     const [isLeagueValidated, setIsLeagueValidated] = useState(false);
     const [leagueError, setLeagueError] = useState(null);
     const [showLeaguePassword, setShowLeaguePassword] = useState(false);
+    const [fadeIn, setFadeIn] = useState(false);
     
     // Post game form state
     const [showPostForm, setShowPostForm] = useState(false);
@@ -72,6 +74,7 @@ export const ActiveGames = () => {
             setSelectedLeague(storedLeague);
             setIsLeagueValidated(true);
             setShowLeaguePassword(false);
+            setFadeIn(true);
         } else {
             setShowLeaguePassword(true);
             setIsLoading(false);
@@ -99,10 +102,9 @@ export const ActiveGames = () => {
             setIsLeagueValidated(true);
             setLeagueError(null);
             
-            // After a delay, hide the league password component
-            setTimeout(() => {
-                setShowLeaguePassword(false);
-            }, 2000);
+            // Hide the league password component and show content with fade
+            setShowLeaguePassword(false);
+            setFadeIn(true);
             
         } catch (error) {
             console.error('Error validating league:', error);
@@ -407,18 +409,29 @@ export const ActiveGames = () => {
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h4" component="h1">
-                    Games
-                </Typography>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => setShowPostForm(!showPostForm)}
-                >
-                    Post Game
-                </Button>
-            </Box>
+            <Fade 
+                in={fadeIn} 
+                timeout={{
+                    enter: 300,
+                    exit: 300
+                }}
+                style={{ 
+                    transitionDelay: fadeIn ? '200ms' : '0ms'
+                }}
+            >
+                <div>
+                    <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="h4" component="h1">
+                            Games
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => setShowPostForm(!showPostForm)}
+                        >
+                            Post Game
+                        </Button>
+                    </Box>
 
             {showPostForm && (
                 <Card sx={{ mb: 3 }}>
@@ -634,23 +647,25 @@ export const ActiveGames = () => {
                 </Grid>
             )}
 
-            <Snackbar
-                open={!!notification}
-                autoHideDuration={6000}
-                onClose={handleCloseNotification}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                {notification && (
-                    <Alert
+                    <Snackbar
+                        open={!!notification}
+                        autoHideDuration={6000}
                         onClose={handleCloseNotification}
-                        severity={notification.type}
-                        variant="filled"
-                        sx={{ width: '100%' }}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                     >
-                        {notification.message}
-                    </Alert>
-                )}
-            </Snackbar>
+                        {notification && (
+                            <Alert
+                                onClose={handleCloseNotification}
+                                severity={notification.type}
+                                variant="filled"
+                                sx={{ width: '100%' }}
+                            >
+                                {notification.message}
+                            </Alert>
+                        )}
+                    </Snackbar>
+                </div>
+            </Fade>
         </Container>
     );
 };

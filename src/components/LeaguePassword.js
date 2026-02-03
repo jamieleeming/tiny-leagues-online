@@ -27,18 +27,17 @@ export const LeaguePassword = ({
 
     useEffect(() => {
         if (isLeagueValidated) {
-            // Wait 2 seconds after successful validation
-            const timer = setTimeout(() => {
-                setIsVisible(false);
-            }, 2000);
+            // Start fade-out immediately
+            setIsVisible(false);
 
             // When fade-out is complete (takes 300ms), trigger the callback
             const transitionTimer = setTimeout(() => {
-                onValidationComplete();
-            }, 2300);  // 2000ms delay + 300ms fade
+                if (onValidationComplete) {
+                    onValidationComplete();
+                }
+            }, 300);  // 300ms fade duration
 
             return () => {
-                clearTimeout(timer);
                 clearTimeout(transitionTimer);
             };
         }

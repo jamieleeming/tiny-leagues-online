@@ -54,11 +54,9 @@ export const Rules = () => {
             setIsLeagueValidated(true);
             setLeagueError(null);
             
-            // After a delay, hide the league password component
-            setTimeout(() => {
-                setShowLeaguePassword(false);
-                setFadeIn(true);
-            }, 2000);
+            // Hide the league password component and show content immediately
+            setShowLeaguePassword(false);
+            setFadeIn(true);
             
         } catch (error) {
             console.error('Error validating league:', error);

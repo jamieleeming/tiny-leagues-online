@@ -313,13 +313,12 @@ const PokerLedger = () => {
             // Fetch games for the validated league
             fetchGames(selectedLeague);
             
-            // After a delay, hide the league password component
+            // Hide the league password component and show game selector
+            setShowLeaguePassword(false);
+            // Small delay for smooth fade-in transition
             setTimeout(() => {
-                setShowLeaguePassword(false);
-                setTimeout(() => {
-                    setShowGameSelector(true);
-                }, 300);
-            }, 2000);
+                setShowGameSelector(true);
+            }, 100);
             
         } catch (error) {
             console.error('Error validating league:', error);
