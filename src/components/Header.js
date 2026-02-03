@@ -13,10 +13,9 @@ import {
     Button
 } from '@mui/material';
 import {
-    Brightness4 as MoonIcon,
-    Brightness7 as SunIcon
+    Settings as SettingsIcon
 } from '@mui/icons-material';
-import { DonateButton } from './DonateButton';
+import { SettingsModal } from './SettingsModal';
 import { hasLeagueAccess } from '../utils/leagueAuth';
 
 const TLLogo = () => {
@@ -74,6 +73,7 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
     // Check if user has league access to show Games button
     // Use state and effect to make it reactive to changes
     const [hasLeague, setHasLeague] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
     
     useEffect(() => {
         const checkLeagueAccess = () => {
@@ -231,18 +231,28 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
                                     Rules
                                 </Button>
                             )}
-                            <DonateButton />
-                            <IconButton 
-                                onClick={onToggleDarkMode}
-                                color="inherit"
-                                size="large"
-                            >
-                                {isDarkMode ? <SunIcon /> : <MoonIcon />}
-                            </IconButton>
+                            {hasLeague && (
+                                <IconButton 
+                                    onClick={() => setSettingsOpen(true)}
+                                    color="inherit"
+                                    size="large"
+                                >
+                                    <SettingsIcon />
+                                </IconButton>
+                            )}
                         </Box>
                     </Box>
                 </Toolbar>
             </Container>
+            {hasLeague && (
+                <SettingsModal
+                    isDarkMode={isDarkMode}
+                    onToggleDarkMode={onToggleDarkMode}
+                    open={settingsOpen}
+                    onClose={() => setSettingsOpen(false)}
+                    onReopen={() => setSettingsOpen(true)}
+                />
+            )}
         </AppBar>
     );
 }; 
