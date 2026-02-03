@@ -16,12 +16,18 @@ import { LeaguePassword } from './components/LeaguePassword';
 import { GameSelector } from './components/GameSelector';
 import { PlayerDetails } from './components/PlayerDetails';
 import { SessionResults } from './components/SessionResults';
+import { UploadGame } from './components/UploadGame';
 import { 
     Container, 
     Fade, 
     Box, 
     Alert, 
-    Snackbar
+    Snackbar,
+    Typography,
+    Button,
+    Card,
+    CardContent,
+    ListItemText
 } from '@mui/material';
 import { hasLeagueAccess, saveLeagueAccess } from './utils/leagueAuth';
 
@@ -38,6 +44,7 @@ const PokerLedger = () => {
     const [gamesError, setGamesError] = useState(null);
     const [notification, setNotification] = useState(null);
     const [showGameSelector, setShowGameSelector] = useState(false);
+    const [showGameList, setShowGameList] = useState(true);
     const [ledgerData, setLedgerData] = useState(null);
     const [showLeaguePassword, setShowLeaguePassword] = useState(true);
 
@@ -67,6 +74,22 @@ const PokerLedger = () => {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         }).format(amount / 100);
+    };
+
+    const formatGameDateTime = (dateString) => {
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true
+            });
+        } catch (error) {
+            return 'Invalid Date';
+        }
     };
 
     const calculateSettlements = (playersInfos) => {
@@ -440,19 +463,92 @@ const PokerLedger = () => {
                             unmountOnExit
                         >
                             <div>
-                                <GameSelector 
-                                    selectedGame={selectedGame}
-                                    games={games}
-                                    setSelectedGame={setSelectedGame}
-                                    setLedgerData={setLedgerData}
-                                    processFile={processFile}
-                                    selectedLeague={selectedLeague}
-                                    refreshGames={fetchGames}
-                                    isLoadingGames={isLoadingGames}
-                                    gamesError={gamesError}
-                                    setVenmoIds={setVenmoIds}
-                                    setSelectedPlayer={setSelectedPlayer}
-                                />
+                                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Typography variant="h4" component="h1">
+                                        Ledgers
+                                    </Typography>
+                                    <UploadGame 
+                                        selectedLeague={selectedLeague}
+                                        refreshGames={fetchGames}
+                                        onResetSelectedGame={() => {
+                                            setSelectedGame(null);
+                                            setLedgerData(null);
+                                            setVenmoIds({});
+                                            setSelectedPlayer('');
+                                            setShowGameList(true);
+                                        }}
+                                    />
+                                </Box>
+                                
+                                {selectedGame && (
+                                    <Card sx={{ mb: 2 }}>
+                                        <CardContent>
+                                            <Box sx={{ 
+                                                display: 'flex', 
+                                                justifyContent: 'space-between', 
+                                                alignItems: { xs: 'flex-start', sm: 'center' },
+                                                gap: 2
+                                            }}>
+                                                <Box 
+                                                    onClick={() => setShowGameList(!showGameList)}
+                                                    sx={{ 
+                                                        flex: 1,
+                                                        cursor: 'pointer',
+                                                        textAlign: 'left',
+                                                        '&:hover': {
+                                                            opacity: 0.7
+                                                        }
+                                                    }}
+                                                >
+                                                    <Typography variant="body1" sx={{ fontWeight: 500, display: { xs: 'block', sm: 'inline' } }}>
+                                                        {selectedGame.nickname || formatGameDateTime(selectedGame.startTime)}
+                                                    </Typography>
+                                                    <Typography 
+                                                        variant="body2" 
+                                                        color="text.secondary" 
+                                                        sx={{ 
+                                                            ml: { xs: 0, sm: 1 },
+                                                            display: { xs: 'block', sm: 'inline' },
+                                                            mt: { xs: 0.5, sm: 0 }
+                                                        }}
+                                                    >
+                                                        {formatGameDateTime(selectedGame.startTime)} • {selectedGame.sessionResults?.length || selectedGame.playersInfos?.length || 0} players
+                                                    </Typography>
+                                                </Box>
+                                                <Button
+                                                    variant="outlined"
+                                                    onClick={() => setShowGameList(!showGameList)}
+                                                    sx={{ 
+                                                        flexShrink: 0,
+                                                        alignSelf: { xs: 'flex-start', sm: 'center' }
+                                                    }}
+                                                >
+                                                    {showGameList ? 'Hide Games' : 'Change Game'}
+                                                </Button>
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                
+                                {(!selectedGame || showGameList) && (
+                                    <GameSelector 
+                                        selectedGame={selectedGame}
+                                        games={games}
+                                        setSelectedGame={setSelectedGame}
+                                        onGameSelect={(game) => {
+                                            setSelectedGame(game);
+                                            setShowGameList(false);
+                                        }}
+                                        setLedgerData={setLedgerData}
+                                        processFile={processFile}
+                                        selectedLeague={selectedLeague}
+                                        refreshGames={fetchGames}
+                                        isLoadingGames={isLoadingGames}
+                                        gamesError={gamesError}
+                                        setVenmoIds={setVenmoIds}
+                                        setSelectedPlayer={setSelectedPlayer}
+                                    />
+                                )}
                                 <Fade 
                                     in={Boolean(selectedGame)} 
                                     unmountOnExit

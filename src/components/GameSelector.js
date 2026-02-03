@@ -7,11 +7,8 @@ import {
     List,
     ListItemButton,
     ListItemText,
-    ListItemIcon,
     Divider
 } from '@mui/material';
-import { Casino as DiceIcon } from '@mui/icons-material';
-import { UploadGame } from './UploadGame';
 import { fetchVenmoIdsBatch } from '../utils/venmoIds';
 
 export const GameSelector = ({ 
@@ -24,7 +21,8 @@ export const GameSelector = ({
     isLoadingGames,
     gamesError,
     setVenmoIds,
-    setSelectedPlayer
+    setSelectedPlayer,
+    onGameSelect
 }) => {
     const resetGameSelection = () => {
         setSelectedGame(null);
@@ -76,7 +74,11 @@ export const GameSelector = ({
             };
 
             // Set new game data after resetting states
-            setSelectedGame(gameData);
+            if (onGameSelect) {
+                onGameSelect(gameData);
+            } else {
+                setSelectedGame(gameData);
+            }
             
             // Handle both sessionResults (newer format) and playersInfos (older format)
             const playerData = gameData.sessionResults || gameData.playersInfos || [];
@@ -115,53 +117,11 @@ export const GameSelector = ({
     return (
         <Card>
             <CardContent>
-                <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    mb: 2
-                }}>
-                    <Box sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 1
-                    }}>
-                        <DiceIcon color="primary" />
-                        <Typography variant="h6" component="h2">
-                            Select Game
-                        </Typography>
-                    </Box>
-                    <UploadGame 
-                        selectedLeague={selectedLeague}
-                        refreshGames={refreshGames}
-                        onResetSelectedGame={resetGameSelection}
-                    />
-                </Box>
+                <Typography variant="h6" component="h2" sx={{ mb: 2, textAlign: 'left' }}>
+                    Select Game
+                </Typography>
 
-                <List
-                    sx={{
-                        maxHeight: '320px',
-                        overflowY: 'overlay',  // Changed from 'auto' to 'overlay'
-                        '&::-webkit-scrollbar': {
-                            width: '8px',
-                            display: 'none',  // Hide by default
-                        },
-                        '&:hover::-webkit-scrollbar': {
-                            display: 'block',  // Show on hover
-                        },
-                        '&::-webkit-scrollbar-track': {
-                            background: '#f1f1f1',
-                            borderRadius: '4px',
-                        },
-                        '&::-webkit-scrollbar-thumb': {
-                            background: '#888',
-                            borderRadius: '4px',
-                            '&:hover': {
-                                background: '#666',
-                            },
-                        },
-                    }}
-                >
+                <List>
                     {sortedGames.map((game, index) => (
                         <React.Fragment key={game.id}>
                             <ListItemButton 
@@ -173,9 +133,6 @@ export const GameSelector = ({
                                     }
                                 }}
                             >
-                                <ListItemIcon>
-                                    <DiceIcon color="primary" />
-                                </ListItemIcon>
                                 <ListItemText 
                                     primary={game.nickname || formatDateTime(game.startTime)}
                                     secondary={`${formatDateTime(game.startTime)} • ${game.sessionResults?.length || 0} players`}
