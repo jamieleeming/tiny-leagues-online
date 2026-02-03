@@ -14,7 +14,8 @@ import {
     ListItem,
     ListItemText,
     Divider,
-    Snackbar
+    Snackbar,
+    Grid
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -509,18 +510,27 @@ export const ActiveGames = () => {
                     </CardContent>
                 </Card>
             ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Grid container spacing={2}>
                     {games.map((game) => (
-                        <Card 
-                            key={game.id}
-                            ref={(el) => {
-                                if (el) {
-                                    gameRefs.current[game.id] = el;
-                                }
-                            }}
-                            id={`game-${game.id}`}
-                        >
-                            <CardContent>
+                        <Grid item xs={12} sm={6} key={game.id}>
+                            <Card 
+                                ref={(el) => {
+                                    if (el) {
+                                        gameRefs.current[game.id] = el;
+                                    }
+                                }}
+                                id={`game-${game.id}`}
+                                sx={{ 
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                }}
+                            >
+                            <CardContent sx={{ 
+                                flex: 1,
+                                display: 'flex',
+                                flexDirection: 'column'
+                            }}>
                                 <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
                                     {game.title}
                                 </Typography>
@@ -596,7 +606,7 @@ export const ActiveGames = () => {
                                     </Typography>
                                 )}
 
-                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Box sx={{ display: 'flex', gap: 1, mt: 'auto' }}>
                                     <TextField
                                         size="small"
                                         placeholder="Your name"
@@ -619,8 +629,9 @@ export const ActiveGames = () => {
                                 </Box>
                             </CardContent>
                         </Card>
+                        </Grid>
                     ))}
-                </Box>
+                </Grid>
             )}
 
             <Snackbar
