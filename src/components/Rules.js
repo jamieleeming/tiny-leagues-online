@@ -106,11 +106,7 @@ export const Rules = () => {
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 4 }}>
-                                This is currently a private, admin-approved community. You MUST be in the Tiny Leagues WhatsApp group to play, as all game links are shared here.
-                            </Typography>
-
-                            <Typography variant="body1" sx={{ mb: 4 }}>
-                                <strong>New players should ask an existing member for the community invite link.</strong>
+                                This is a private, admin-approved community. You MUST be in the Tiny Leagues WhatsApp group to play.
                             </Typography>
 
                             <Divider sx={{ my: 4 }} />
@@ -119,67 +115,60 @@ export const Rules = () => {
                                 ⚙️ 1. New Member Setup
                             </Typography>
                             
-                            <Box component="ul" sx={{ pl: 3, mb: 4 }}>
-                                <li><Typography variant="body1" component="span"><strong>For IRL games:</strong> tinyleagues.co</Typography></li>
-                                <li><Typography variant="body1" component="span"><strong>For Online Games:</strong> pokernow.club</Typography></li>
-                                <li><Typography variant="body1" component="span"><strong>For Payments (online games):</strong> online.tinyleagues.co</Typography></li>
-                                <li><Typography variant="body1" component="span"><strong>League Code:</strong> See WhatsApp group description</Typography></li>
-                            </Box>
+                            <Typography variant="body1" sx={{ mb: 2 }}>
+                                <strong>IRL games:</strong> <a href="https://tinyleagues.co" target="_blank">tinyleagues.co</a>
+                            </Typography>
+
+                            <Typography variant="body1" sx={{ mb: 2 }}>
+                                <strong>Online games:</strong> <a href="https://online.tinyleagues.co" target="_blank">online.tinyleagues.co</a>
+                            </Typography>
+
+                            <Typography variant="body1" sx={{ mb: 2, color: 'error.main', fontWeight: 600 }}>
+                                You must be logged into a <a href="https://network.pokernow.com/sessions/new" target="_blank">PokerNow</a> account before sitting at any online table.
+                            </Typography>
 
                             <Divider sx={{ my: 4 }} />
 
                             <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 4 }}>
-                                💸 2. Playing & Payments
+                                📜 2. Community Trust
+                            </Typography>
+
+                            <Typography variant="body1" sx={{ mb: 2 }}>
+                                <strong>No Cheating:</strong> Zero tolerance for Real-Time Assistance (RTA), solvers, or external help. Hand histories are checked; cheaters are permanently removed.
+                            </Typography>
+
+                            <Typography variant="body1" sx={{ mb: 2 }}>
+                                <strong>No Bullying or Harassment:</strong> Zero tolerance for bullying or harassment of any player. Treat all players with respect.
+                            </Typography>
+
+                            <Typography variant="body1" sx={{ mb: 4 }}>
+                                <strong>Reporting:</strong> Report suspected foul play to an admin immediately. All reports are investigated discreetly.
+                            </Typography>
+
+                            <Divider sx={{ my: 4 }} />
+
+                            <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 4 }}>
+                                💸 3. Playing & Payments
                             </Typography>
                             
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Game Runner:</strong> Each game has a designated Runner who hosts the game and is responsible for uploading the final ledger to the payment portal.
+                                <strong>Game Runner:</strong> Each game has a designated Game Runner responsible for uploading the final ledger to the payment portal.
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Joining a Game:</strong> You must be logged into your Pokernow account to join the table.
+                                <strong>Venmo:</strong> New players: enter your Venmo ID in the payment portal. Returning players' info auto-populates if you've logged into PokerNow before sitting at a table.
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Venmo:</strong> New players must enter their Venmo ID in the payment portal. Returning players' info will auto-populate, provided they have logged into PokerNow before sitting at a table.
-                            </Typography>
-
-                            <Typography variant="body1" sx={{ mb: 4, color: 'error.main', fontWeight: 600 }}>
-                                <strong>SETTLEMENTS:</strong> ALL players have 24 HOURS to settle up after the ledger is posted. This is a critical trust rule.
-                            </Typography>
-
-                            <Divider sx={{ my: 4 }} />
-
-                            <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 4 }}>
-                                📜 3. Rules & Community Trust
-                            </Typography>
-
-                            <Typography variant="h6" component="h3" gutterBottom sx={{ mt: 3, mb: 2 }}>
-                                Zero Tolerance Policy
-                            </Typography>
-
-                            <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>No Cheating:</strong> Zero tolerance for Real-Time Assistance (RTA), solvers, or any external help. We check hand histories and will permanently remove anyone caught cheating.
+                                <strong>Approvals:</strong> Get admin approval before inviting someone. You're liable for their actions and must ensure they read these rules.
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 4 }}>
-                                <strong>Reporting:</strong> See something, say something. If you suspect foul play, private message an admin immediately. All reports are investigated discreetly.
+                                <strong>Connection:</strong> A stable internet connection is crucial. If lagging, sit out to avoid disrupting gameplay.
                             </Typography>
 
-                            <Typography variant="h6" component="h3" gutterBottom sx={{ mt: 3, mb: 2 }}>
-                                Invites & Etiquette
-                            </Typography>
-
-                            <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Approvals:</strong> You must get admin approval before inviting someone. You are liable for their actions and must ensure they read these rules.
-                            </Typography>
-
-                            <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Connection:</strong> A stable internet connection is crucial. If you are lagging, please sit out to avoid disrupting the flow of the game.
-                            </Typography>
-
-                            <Typography variant="body1" sx={{ mb: 4 }}>
-                                <strong>DBAD:</strong> If you have to leave, give a fair heads-up. If the original Game Runner needs admin control back, please transfer it. If someone is being a 🍆, screenshot it and send it to an admin for review.
+                            <Typography variant="body1" sx={{ mb: 2, color: 'error.main', fontWeight: 600 }}>
+                                <strong>SETTLEMENTS:</strong> ALL players have 24 HOURS to settle up after the ledger is posted.
                             </Typography>
 
                             <Divider sx={{ my: 4 }} />
@@ -189,7 +178,7 @@ export const Rules = () => {
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Posting Requirement:</strong> When sharing a game link, you must include the stakes and the poker variation (e.g., $1/$2 NLH).
+                                <strong>Posting Requirement:</strong> When sharing a game link, include stakes and poker variation (e.g., $1/$2 NLH).
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
@@ -197,19 +186,19 @@ export const Rules = () => {
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Creating New Action:</strong> If players want different stakes, variations, or table rules, they must create a new, separate table. Let the market decide which game runs!
+                                <strong>Creating New Action:</strong> If players want different stakes, variations, or table rules, create a new table. Let the market decide which game runs!
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Game Runner Transition:</strong> If a runner leaves, the new host must maintain the original stakes/variation (and bomb pot rules) unless all players unanimously agree to change.
+                                <strong>Game Runner Transition:</strong> If a runner leaves, the new host maintains original stakes/variation (and bomb pot rules) unless all players unanimously agree to change.
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Closing the Books:</strong> As long as ledgers are uploaded for each game, everything is considered fair and square.
+                                <strong>Closing the Books:</strong> All ledgers must be uploaded by the Game Runner after the game ends.
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 4 }}>
-                                <strong>The Rejoin Rule:</strong> If a player leaves and attempts to sit back down at the same table/ledger, they are required to buy in for an amount equal to or greater than the stack they had when they left.
+                                <strong>Rejoin Rule:</strong> If a player leaves and returns to the same table, they must buy in for an amount equal to or greater than their previous stack.
                             </Typography>
 
                             <Divider sx={{ my: 4 }} />
@@ -219,19 +208,19 @@ export const Rules = () => {
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Social Gaming Only (No Rake):</strong> This community is strictly for social and recreational purposes. The admins and Tiny Leagues Online DO NOT charge a rake, entry fee, administrative fee, or take any percentage of the pot. No profit is generated by the house; 100% of funds are redistributed among players.
+                                <strong>Social Gaming Only (No Rake):</strong> This community is for social and recreational purposes only. Admins and Tiny Leagues Online charge no rake, entry fee, or administrative fee. No house profit; 100% of funds are redistributed to players.
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Peer-to-Peer Settlements:</strong> Tiny Leagues Online and its admins never hold, process, or touch player funds. All financial settlements are strictly peer-to-peer (P2P) directly between players. The admins are not responsible for collecting debts, resolving payment disputes between individuals, or covering losses.
+                                <strong>Peer-to-Peer Settlements:</strong> Tiny Leagues Online and its admins never hold or process player funds. All settlements are peer-to-peer between players. Admins are not responsible for collecting debts, resolving payment disputes, or covering losses.
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Assumption of Risk:</strong> You understand that poker is a game of skill and chance. You participate voluntarily and assume full responsibility for your own financial decisions and compliance with your local laws regarding social gaming.
+                                <strong>Assumption of Risk:</strong> You understand poker is a game of skill and chance. You participate voluntarily and assume full responsibility for your financial decisions and compliance with local social gaming laws.
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 4 }}>
-                                <strong>Limitation of Liability:</strong> Admins are facilitators only. You agree to release, indemnify, and hold harmless the administrators from any claims, damages, or disputes arising from gameplay, technical issues (e.g., internet lag, server crashes), or the actions of other players.
+                                <strong>Limitation of Liability:</strong> Admins are facilitators only. You agree to release, indemnify, and hold harmless administrators from any claims, damages, or disputes arising from gameplay, technical issues, or other players' actions.
                             </Typography>
 
                             <Divider sx={{ my: 4 }} />
@@ -247,7 +236,7 @@ export const Rules = () => {
                                     ✅ MANDATORY ACKNOWLEDGEMENT
                                 </Typography>
                                 <Typography variant="body1">
-                                    By participating in any game linked from this group, all players (whether new or returning) explicitly confirm that they have read, understood, and agreed to all the rules and legal disclaimers outlined above.
+                                    By participating in any game linked from this group, all players (new or returning) confirm they have read, understood, and agreed to all rules and legal disclaimers above.
                                 </Typography>
                             </Box>
                         </CardContent>

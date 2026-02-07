@@ -615,7 +615,7 @@ export const ActiveGames = () => {
                                     </List>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                        No one on waitlist yet
+                                        No one has joined the waitlist yet
                                     </Typography>
                                 )}
 
