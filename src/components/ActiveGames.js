@@ -16,7 +16,8 @@ import {
     Divider,
     Snackbar,
     Grid,
-    Fade
+    Fade,
+    MenuItem
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -42,6 +43,14 @@ import { extractGameId, isValidPokerNowUrl } from '../utils/gameUtils';
 import { hasLeagueAccess, saveLeagueAccess } from '../utils/leagueAuth';
 import { LeaguePassword } from './LeaguePassword';
 
+const POKER_VARIANTS = [
+    "No Limit Texas Hold'em",
+    'Pot Limit Omaha Hi',
+    'Pot Limit Omaha Hi/Lo (8 or Better)',
+    'Pot Limit Omaha 5 Hi',
+    'Pot Limit Omaha 5 Hi/Lo (8 or Better)'
+];
+
 export const ActiveGames = () => {
     const location = useLocation();
     const gameRefs = useRef({});
@@ -60,6 +69,7 @@ export const ActiveGames = () => {
     const [title, setTitle] = useState('');
     const [link, setLink] = useState('');
     const [host, setHost] = useState('');
+    const [variant, setVariant] = useState("No Limit Texas Hold'em");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formErrors, setFormErrors] = useState({});
     const [notification, setNotification] = useState(null);
@@ -193,11 +203,11 @@ export const ActiveGames = () => {
     const validateForm = () => {
         const errors = {};
 
-        // Validate title
+        // Validate description
         if (!title.trim()) {
-            errors.title = 'Title is required';
+            errors.title = 'Description is required';
         } else if (title.trim().length > 50) {
-            errors.title = 'Title must be 50 characters or less';
+            errors.title = 'Description must be 50 characters or less';
         }
 
         // Validate link
@@ -214,6 +224,13 @@ export const ActiveGames = () => {
             errors.host = 'Host is required';
         } else if (host.trim().length > 50) {
             errors.host = 'Host name must be 50 characters or less';
+        }
+
+        // Validate variant
+        if (!variant || !variant.trim()) {
+            errors.variant = 'Variant is required';
+        } else if (!POKER_VARIANTS.includes(variant)) {
+            errors.variant = 'Please select a valid variant';
         }
 
         setFormErrors(errors);
@@ -274,6 +291,7 @@ export const ActiveGames = () => {
                 link: trimmedLink,
                 title: trimmedTitle,
                 host: trimmedHost,
+                variant: variant.trim(),
                 createdAt: new Date().toISOString(),
                 waitlist: [],
                 strikethroughNames: []
@@ -287,6 +305,7 @@ export const ActiveGames = () => {
             setTitle('');
             setLink('');
             setHost('');
+            setVariant("No Limit Texas Hold'em");
             setShowPostForm(false);
             setFormErrors({});
             setNotification({ type: 'success', message: 'Game posted successfully!' });
@@ -442,17 +461,30 @@ export const ActiveGames = () => {
                         <form onSubmit={handlePostGame}>
                             <TextField
                                 fullWidth
-                                label="Title"
-                                value={title}
+                                select
+                                label="Variant"
+                                value={variant}
                                 onChange={(e) => {
-                                    setTitle(e.target.value);
-                                    if (formErrors.title) setFormErrors({ ...formErrors, title: '' });
+                                    setVariant(e.target.value);
+                                    if (formErrors.variant) setFormErrors({ ...formErrors, variant: '' });
                                 }}
-                                error={!!formErrors.title}
-                                helperText={formErrors.title || `${title.length}/50 characters`}
+                                error={!!formErrors.variant}
+                                helperText={formErrors.variant || 'Poker format or game variant'}
                                 margin="normal"
-                                inputProps={{ maxLength: 50 }}
-                            />
+                                InputProps={{
+                                    sx: {
+                                        '& .MuiSelect-select': {
+                                            textAlign: 'left'
+                                        }
+                                    }
+                                }}
+                            >
+                                {POKER_VARIANTS.map((v) => (
+                                    <MenuItem key={v} value={v}>
+                                        {v}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                             <TextField
                                 fullWidth
                                 label="Game Link"
@@ -479,6 +511,19 @@ export const ActiveGames = () => {
                                 margin="normal"
                                 inputProps={{ maxLength: 50 }}
                             />
+                            <TextField
+                                fullWidth
+                                label="Description"
+                                value={title}
+                                onChange={(e) => {
+                                    setTitle(e.target.value);
+                                    if (formErrors.title) setFormErrors({ ...formErrors, title: '' });
+                                }}
+                                error={!!formErrors.title}
+                                helperText={formErrors.title || `${title.length}/50 characters`}
+                                margin="normal"
+                                inputProps={{ maxLength: 50 }}
+                            />
                             <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                                 <Button
                                     type="submit"
@@ -493,6 +538,7 @@ export const ActiveGames = () => {
                                         setTitle('');
                                         setLink('');
                                         setHost('');
+                                        setVariant("No Limit Texas Hold'em");
                                         setFormErrors({});
                                     }}
                                 >
@@ -545,11 +591,15 @@ export const ActiveGames = () => {
                                 flexDirection: 'column'
                             }}>
                                 <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
-                                    {game.title}
+                                    {game.variant || game.title}
                                 </Typography>
                                 
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                     Host: {game.host} • {formatTimeAgo(game.createdAt)}
+                                </Typography>
+
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: '1.5em' }}>
+                                    {game.variant && game.title ? game.title : '\u00A0'}
                                 </Typography>
 
                                 <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
