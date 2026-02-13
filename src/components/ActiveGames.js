@@ -150,13 +150,13 @@ export const ActiveGames = () => {
         setIsLoading(true);
         setError(null);
 
-        // Calculate 48 hours ago
-        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+        // Calculate 24 hours ago (games stay live for 24 hours)
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         
         const gamesRef = collection(db, 'leagues', selectedLeague, 'activeGames');
         const q = query(
             gamesRef,
-            where('createdAt', '>', fortyEightHoursAgo.toISOString()),
+            where('createdAt', '>', twentyFourHoursAgo.toISOString()),
             orderBy('createdAt', 'desc')
         );
 
@@ -174,7 +174,7 @@ export const ActiveGames = () => {
                 const filteredGames = gamesData.filter(game => {
                     const createdAt = new Date(game.createdAt);
                     const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
-                    return hoursSinceCreation < 48;
+                    return hoursSinceCreation < 24;
                 });
                 
                 setGames(filteredGames);
