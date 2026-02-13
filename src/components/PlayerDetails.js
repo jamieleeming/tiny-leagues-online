@@ -61,7 +61,7 @@ export const PlayerDetails = ({
             const cleanVenmoId = newVenmoId.trim().replace('@', '');
             const now = new Date().toISOString();
             
-            await setDoc(doc(db, 'venmoIds', selectedPlayer), {
+            await setDoc(doc(db, 'players', selectedPlayer), {
                 playerName: playerStats.name,
                 pokerNowId: selectedPlayer,
                 createdAt: now,

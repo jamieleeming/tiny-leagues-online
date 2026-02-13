@@ -10,7 +10,7 @@
 class QueryTracker {
     constructor() {
         this.queries = {
-            venmoIds: {
+            players: {
                 count: 0,
                 batchCount: 0,
                 individualCount: 0,
@@ -38,11 +38,11 @@ class QueryTracker {
     trackVenmoBatch(playerCount, batchCount) {
         if (!this.enabled) return;
         
-        this.queries.venmoIds.count++;
-        this.queries.venmoIds.batchCount += batchCount;
-        this.queries.venmoIds.totalPlayers += playerCount;
+        this.queries.players.count++;
+        this.queries.players.batchCount += batchCount;
+        this.queries.players.totalPlayers += playerCount;
         
-        console.log(`[QueryTracker] Venmo IDs: ${playerCount} players fetched in ${batchCount} batch(es)`);
+        console.log(`[QueryTracker] Player payment info: ${playerCount} players fetched in ${batchCount} batch(es)`);
     }
 
     /**
@@ -79,12 +79,12 @@ class QueryTracker {
         return {
             ...this.queries,
             summary: {
-                totalVenmoQueries: this.queries.venmoIds.count,
-                averagePlayersPerVenmoQuery: this.queries.venmoIds.count > 0 
-                    ? Math.round(this.queries.venmoIds.totalPlayers / this.queries.venmoIds.count)
+                totalPlayerPaymentQueries: this.queries.players.count,
+                averagePlayersPerQuery: this.queries.players.count > 0 
+                    ? Math.round(this.queries.players.totalPlayers / this.queries.players.count)
                     : 0,
-                averageBatchesPerVenmoQuery: this.queries.venmoIds.count > 0
-                    ? (this.queries.venmoIds.batchCount / this.queries.venmoIds.count).toFixed(2)
+                averageBatchesPerQuery: this.queries.players.count > 0
+                    ? (this.queries.players.batchCount / this.queries.players.count).toFixed(2)
                     : 0,
                 totalGameQueries: this.queries.games.count,
                 averageGamesPerQuery: this.queries.games.count > 0
@@ -103,7 +103,7 @@ class QueryTracker {
         
         const stats = this.getStats();
         console.group('[QueryTracker] Summary Statistics');
-        console.log('Venmo ID Queries:', stats.summary);
+        console.log('Player Payment Queries:', stats.summary);
         console.log('Game Queries:', {
             total: stats.games.count,
             averageGamesPerQuery: stats.summary.averageGamesPerQuery,
@@ -118,7 +118,7 @@ class QueryTracker {
      */
     reset() {
         this.queries = {
-            venmoIds: {
+            players: {
                 count: 0,
                 batchCount: 0,
                 individualCount: 0,

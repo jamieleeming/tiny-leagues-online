@@ -311,8 +311,8 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                     // Check if any of the IDs already have Venmo information
                     const existingVenmoPromises = selectedIds.map(async (playerId) => {
                         try {
-                            // Check if player exists in the venmoIds collection
-                            const venmoDoc = await getDoc(doc(db, 'venmoIds', playerId));
+                            // Check if player exists in the players collection
+                            const venmoDoc = await getDoc(doc(db, 'players', playerId));
                             return {
                                 playerId,
                                 hasVenmo: venmoDoc.exists(),

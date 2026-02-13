@@ -21,7 +21,7 @@ import { queryTracker } from './queryTracker';
  * @returns {Promise<Object>} Object mapping playerId -> venmoId
  * 
  * Security Note: Only fetches documents for the provided playerIds.
- * Firestore security rules should also restrict access to venmoIds collection.
+ * Firestore security rules should also restrict access to players collection.
  */
 export const fetchVenmoIdsBatch = async (playerIds) => {
     if (!playerIds || playerIds.length === 0) {
@@ -52,7 +52,7 @@ export const fetchVenmoIdsBatch = async (playerIds) => {
         const batchPromises = batches.map(async (batch) => {
             // Create document references for this batch
             const docRefs = batch.map(playerId => 
-                doc(db, 'venmoIds', playerId)
+                doc(db, 'players', playerId)
             );
             
             // Fetch all documents in this batch
@@ -129,7 +129,7 @@ export const fetchVenmoIdsBatchQuery = async (playerIds) => {
         
         // Fetch all batches in parallel
         const batchPromises = batches.map(async (batch) => {
-            const venmoRef = collection(db, 'venmoIds');
+            const venmoRef = collection(db, 'players');
             // Query by document ID using '__name__' field
             // This only returns documents whose IDs are in the batch array
             const q = query(venmoRef, where('__name__', 'in', batch));
