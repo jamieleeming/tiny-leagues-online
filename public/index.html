@@ -31,19 +31,19 @@
     -->
     <title>Tiny Leagues Online</title>
     <script>
-      // Set color-scheme before React loads so Chrome Android respects dark mode toggle
+      // Set color-scheme before React loads: use stored preference, else inherit from device
       (function() {
         try {
           var stored = localStorage.getItem('tinyLeaguesDarkMode');
-          if (stored === 'true') {
-            document.documentElement.style.colorScheme = 'dark';
-            var m = document.querySelector('meta[name="theme-color"]');
-            if (m) m.setAttribute('content', '#09090b');
-          } else if (stored === 'false') {
-            document.documentElement.style.colorScheme = 'light';
-            var m = document.querySelector('meta[name="theme-color"]');
-            if (m) m.setAttribute('content', '#fafafa');
+          var dark;
+          if (stored === 'true') dark = true;
+          else if (stored === 'false') dark = false;
+          else {
+            dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
           }
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.setAttribute('content', dark ? '#09090b' : '#fafafa');
         } catch (e) {}
       })();
     </script>

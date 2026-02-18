@@ -358,7 +358,7 @@ export const ActiveGames = () => {
     };
 
     const handleShareGame = (gameId) => {
-        const shareUrl = `${window.location.origin}/active-games#game-${gameId}`;
+        const shareUrl = `${window.location.origin}/games#game-${gameId}`;
         
         // Try to use Web Share API if available
         if (navigator.share) {

@@ -114,6 +114,35 @@ export const GameSelector = ({
         }
     };
 
+    const getDateGroupLabel = (dateString) => {
+        try {
+            const date = new Date(dateString);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const gameDay = new Date(date);
+            gameDay.setHours(0, 0, 0, 0);
+            const diffDays = Math.floor((today - gameDay) / (1000 * 60 * 60 * 24));
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return 'Yesterday';
+            if (diffDays < 7) return date.toLocaleDateString('en-US', { weekday: 'long' });
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch {
+            return 'Other';
+        }
+    };
+
+    const gamesByDate = sortedGames.reduce((acc, game) => {
+        const dateKey = new Date(game.startTime || game.createdAt).toDateString();
+        if (!acc[dateKey]) acc[dateKey] = [];
+        acc[dateKey].push(game);
+        return acc;
+    }, {});
+
+    const dateGroups = Object.entries(gamesByDate).map(([dateKey, games]) => ({
+        label: getDateGroupLabel(games[0].startTime || games[0].createdAt),
+        games,
+    }));
+
     return (
         <Card elevation={0}>
             <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
@@ -122,31 +151,49 @@ export const GameSelector = ({
                 </Typography>
 
                 <List disablePadding>
-                    {sortedGames.map((game, index) => (
-                        <React.Fragment key={game.id}>
-                            <ListItemButton 
-                                selected={selectedGame?.id === game.id}
-                                onClick={() => handleGameClick(game)}
+                    {dateGroups.map(({ label, games }) => (
+                        <React.Fragment key={label}>
+                            <Typography
+                                variant="caption"
                                 sx={{
-                                    borderRadius: 2,
-                                    mx: 0.5,
-                                    mb: 0.5,
-                                    '&.Mui-selected': {
-                                        backgroundColor: 'rgba(250, 250, 250, 0.08)',
-                                        '&:hover': { backgroundColor: 'rgba(250, 250, 250, 0.12)' },
-                                    },
+                                    px: 1.5,
+                                    py: 1,
+                                    color: 'text.secondary',
+                                    fontWeight: 600,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em',
+                                    display: 'block',
                                 }}
                             >
-                                <ListItemText 
-                                    primary={game.nickname || formatDateTime(game.startTime)}
-                                    secondary={`${formatDateTime(game.startTime)} • ${game.sessionResults?.length || 0} players`}
-                                    primaryTypographyProps={{ fontWeight: 500, fontSize: '0.9375rem' }}
-                                    secondaryTypographyProps={{ fontSize: '0.8125rem', color: 'text.secondary' }}
-                                />
-                            </ListItemButton>
-                            {index < sortedGames.length - 1 && (
-                                <Divider variant="inset" component="li" sx={{ mx: 0 }} />
-                            )}
+                                {label}
+                            </Typography>
+                            {games.map((game, index) => (
+                                <React.Fragment key={game.id}>
+                                    <ListItemButton 
+                                        selected={selectedGame?.id === game.id}
+                                        onClick={() => handleGameClick(game)}
+                                        sx={{
+                                            borderRadius: 2,
+                                            mx: 0.5,
+                                            mb: 0.5,
+                                            '&.Mui-selected': {
+                                                backgroundColor: 'rgba(250, 250, 250, 0.08)',
+                                                '&:hover': { backgroundColor: 'rgba(250, 250, 250, 0.12)' },
+                                            },
+                                        }}
+                                    >
+                                        <ListItemText 
+                                            primary={game.nickname || formatDateTime(game.startTime)}
+                                            secondary={`${formatDateTime(game.startTime)} • ${game.sessionResults?.length || 0} players`}
+                                            primaryTypographyProps={{ fontWeight: 500, fontSize: '0.9375rem' }}
+                                            secondaryTypographyProps={{ fontSize: '0.8125rem', color: 'text.secondary' }}
+                                        />
+                                    </ListItemButton>
+                                    {index < games.length - 1 && (
+                                        <Divider variant="inset" component="li" sx={{ mx: 0 }} />
+                                    )}
+                                </React.Fragment>
+                            ))}
                         </React.Fragment>
                     ))}
                 </List>

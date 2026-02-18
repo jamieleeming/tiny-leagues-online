@@ -50,7 +50,7 @@ const TLLogo = ({ size = 36 }) => {
 
 const navItems = [
     { path: '/', label: 'Ledgers', icon: <LedgersIcon /> },
-    { path: '/active-games', label: 'Games', icon: <SpadeSuitIcon /> },
+    { path: '/games', label: 'Games', icon: <SpadeSuitIcon /> },
     { path: '/rules', label: 'Rules', icon: <RulesIcon /> },
 ];
 

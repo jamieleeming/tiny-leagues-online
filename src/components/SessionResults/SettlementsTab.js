@@ -43,7 +43,7 @@ export const SettlementsTab = ({
         return (
             <Box sx={{ p: 2 }}>
                 <Typography color="text.secondary">
-                    Select a player above to see your settlements and make payments.
+                    Select a player to see your settlements and make payments.
                 </Typography>
             </Box>
         );

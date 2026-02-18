@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, useMediaQuery, Fade } from '@mui/material';
 import { createAppTheme } from './theme';
 import './App.css';
@@ -8,6 +8,11 @@ import { Rules } from './components/Rules';
 import { AppShell } from './components/AppShell.js';
 import { ActiveGames } from './components/ActiveGames';
 
+function ActiveGamesRedirect() {
+  const location = useLocation();
+  return <Navigate to={`/games${location.hash || ''}`} replace />;
+}
+
 function RoutesWithTransition() {
   const location = useLocation();
   return (
@@ -15,7 +20,8 @@ function RoutesWithTransition() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Routes>
           <Route path="/rules" element={<Rules />} />
-          <Route path="/active-games" element={<ActiveGames />} />
+          <Route path="/active-games" element={<ActiveGamesRedirect />} />
+          <Route path="/games" element={<ActiveGames />} />
           <Route path="/" element={<PokerLedger />} />
         </Routes>
       </div>
@@ -35,7 +41,7 @@ function App() {
       return null;
     }
   });
-  const isDarkMode = manualDarkMode !== null ? manualDarkMode : (prefersDarkMode ?? true);
+  const isDarkMode = manualDarkMode !== null ? manualDarkMode : (prefersDarkMode ?? false);
 
   const theme = useMemo(() => createAppTheme(isDarkMode), [isDarkMode]);
 
