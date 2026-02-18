@@ -57,35 +57,4 @@ export const hasLeagueAccess = (leagueId) => {
 export const removeLeagueAccess = (leagueId) => {
   if (!leagueId) return;
   localStorage.removeItem(`${STORAGE_PREFIX}${leagueId}`);
-};
-
-/**
- * Get all leagues the user has access to
- * @returns {Array} - Array of league IDs
- */
-export const getAccessibleLeagues = () => {
-  const leagues = [];
-  const now = new Date().getTime();
-  
-  // Iterate through localStorage items
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith(STORAGE_PREFIX)) {
-      try {
-        const tokenData = JSON.parse(localStorage.getItem(key));
-        
-        // Check if token is valid
-        if (tokenData.expiry > now) {
-          leagues.push(tokenData.leagueId);
-        } else {
-          // Clean up expired token
-          localStorage.removeItem(key);
-        }
-      } catch (error) {
-        console.error('Error parsing league access token:', error);
-      }
-    }
-  }
-  
-  return leagues;
 }; 
