@@ -31,12 +31,12 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "generate-icon": "node scripts/generateIcon.js",
-    "find-player-games": "node scripts/findPlayerGames.js",
-    "analyze-money-flow": "node scripts/analyzeMoneyFlow.js",
-    "export-game-results": "node scripts/exportGameResults.js",
-    "venmo-buyin-totals": "node scripts/venmoBuyInTotals.js",
-    "migrate-venmo-to-players": "node scripts/migrateVenmoIdsToPlayers.js",
-    "count-venmo-to-port": "node scripts/countVenmoIdsToPort.js"
+    "find-player-games": "node archive/analytics/findPlayerGames.js",
+    "analyze-money-flow": "node archive/analytics/analyzeMoneyFlow.js",
+    "export-game-results": "node archive/exports/exportGameResults.js",
+    "venmo-buyin-totals": "node archive/analytics/venmoBuyInTotals.js",
+    "migrate-venmo-to-players": "node archive/migrations/migrateVenmoIdsToPlayers.js",
+    "count-venmo-to-port": "node archive/migrations/countVenmoIdsToPort.js"
   },
   "eslintConfig": {
     "extends": [

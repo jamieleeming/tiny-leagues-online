@@ -22,23 +22,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Archive: one-off scripts, migrations, exports, and reference docs (kept locally, not in repo)
+archive/
+
 # Reference files
-reference_files/
 *.csv
-DATABASE_QUERY_EFFICIENCY_REPORT.md
-scripts/analyzeMoneyFlow.js
-scripts/exportGameResults.js
-scripts/findPlayerGames.js
-SECURITY_IMPLEMENTATION.md
-MONITORING_GUIDE.md
-scripts/venmoBuyInTotals.js
-DONATION_IMPLEMENTATION_GUIDE.md
 firestore.rules
-POSTGRESQL_MIGRATION_ANALYSIS.md
-POSTGRESQL_MIGRATION_ANALYSIS_UPDATED.md
-UNIFIED_SCHEMA_DESIGN.md
-scripts/migrateVenmoIdsToPlayers.js
 firebase-debug.log
-firebase-debug.log
-DEPENDENCY_AUDIT_REPORT.md
-scripts/countVenmoIdsToPort.js
