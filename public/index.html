@@ -31,6 +31,23 @@
     -->
     <title>Tiny Leagues Online</title>
     <script>
+      // Set color-scheme before React loads so Chrome Android respects dark mode toggle
+      (function() {
+        try {
+          var stored = localStorage.getItem('tinyLeaguesDarkMode');
+          if (stored === 'true') {
+            document.documentElement.style.colorScheme = 'dark';
+            var m = document.querySelector('meta[name="theme-color"]');
+            if (m) m.setAttribute('content', '#09090b');
+          } else if (stored === 'false') {
+            document.documentElement.style.colorScheme = 'light';
+            var m = document.querySelector('meta[name="theme-color"]');
+            if (m) m.setAttribute('content', '#fafafa');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <script>
       // Handle GitHub Pages path rewriting for React Router
       // This converts /?/rules back to /rules before React Router initializes
       (function() {

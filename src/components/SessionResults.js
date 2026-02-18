@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Card,
     CardContent,
@@ -40,6 +40,11 @@ export const SessionResults = ({
     onSettleUp
 }) => {
     const [tabValue, setTabValue] = useState(0);
+
+    // Reset to Settlements tab when game selection changes
+    useEffect(() => {
+        setTabValue(0);
+    }, [selectedGame?.id]);
 
     if (!ledgerData || !Array.isArray(ledgerData)) {
         return null;

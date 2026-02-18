@@ -248,7 +248,11 @@ export const AppShell = ({ children, isDarkMode, onToggleDarkMode }) => {
                             },
                             '& .Mui-selected': {
                                 color: 'primary.main',
+                                '& .MuiSvgIcon-root': { fontSize: 24 },
+                                '& .MuiBottomNavigationAction-label': { fontSize: '0.75rem' },
                             },
+                            '& .MuiBottomNavigationAction-root .MuiSvgIcon-root': { fontSize: 24 },
+                            '& .MuiBottomNavigationAction-root .MuiBottomNavigationAction-label': { fontSize: '0.75rem' },
                         }}
                     >
                         {navItems.map((item) => (
