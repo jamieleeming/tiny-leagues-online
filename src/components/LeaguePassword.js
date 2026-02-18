@@ -124,13 +124,7 @@ export const LeaguePassword = ({
                                     disabled={!selectedLeague || isSubmitting}
                                     variant="contained"
                                     size="large"
-                                    sx={{
-                                        minWidth: 120,
-                                        height: 48,
-                                        fontWeight: 600,
-                                        bgcolor: 'primary.main',
-                                        '&:hover': { bgcolor: 'primary.dark' },
-                                    }}
+                                    sx={{ minWidth: 120, height: 48 }}
                                 >
                                     {isSubmitting ? (
                                         <CircularProgress size={24} color="inherit" />

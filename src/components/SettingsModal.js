@@ -129,7 +129,7 @@ export const SettingsModal = ({ isDarkMode, onToggleDarkMode, open, onClose, onR
                                 variant="outlined"
                                 onClick={handleSwitchLeague}
                                 fullWidth
-                                sx={{ mt: 1, borderRadius: 2 }}
+                                sx={{ mt: 1 }}
                             >
                                 Switch League
                             </Button>
@@ -146,7 +146,7 @@ export const SettingsModal = ({ isDarkMode, onToggleDarkMode, open, onClose, onR
                                 variant="outlined"
                                 onClick={handleSupportClick}
                                 fullWidth
-                                sx={{ mt: 1, borderRadius: 2 }}
+                                sx={{ mt: 1 }}
                             >
                                 Support Tiny Leagues
                             </Button>

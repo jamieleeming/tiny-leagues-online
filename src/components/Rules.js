@@ -133,8 +133,10 @@ export const Rules = () => {
                                 '&:visited': {
                                     color: 'primary.main',
                                 },
-                                '&:hover': {
-                                    color: 'primary.light',
+                                '@media (hover: hover)': {
+                                    '&:hover': {
+                                        color: 'primary.light',
+                                    },
                                 },
                             },
                         }}>

@@ -91,8 +91,10 @@ export const Settlements = ({ ledgerData, formatAmount }) => {
                                     {index > 0 && <Divider />}
                                     <ListItem
                                         sx={{
-                                            '&:hover': {
-                                                backgroundColor: theme.palette.action.hover,
+                                            '@media (hover: hover)': {
+                                                '&:hover': {
+                                                    backgroundColor: theme.palette.action.hover,
+                                                },
                                             },
                                             transition: 'background-color 0.2s'
                                         }}

@@ -127,15 +127,8 @@ export const DonateButton = ({ controlledOpen, onControlledClose, hideButton = f
             {!hideButton && (
                 <Button
                     onClick={handleOpen}
-                    sx={{
-                        color: 'text.primary',
-                        textTransform: 'none',
-                        fontWeight: 400,
-                        '&:hover': {
-                            backgroundColor: 'transparent',
-                            color: 'primary.main'
-                        }
-                    }}
+                    variant="text"
+                    sx={{ color: 'text.primary' }}
                 >
                     Support
                 </Button>

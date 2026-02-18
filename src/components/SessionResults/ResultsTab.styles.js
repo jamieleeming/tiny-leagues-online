@@ -17,10 +17,12 @@ export const HeaderCell = styled(TableCell)(({ theme }) => ({
 }));
 
 export const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    '&:hover': {
-        backgroundColor: theme.palette.mode === 'dark'
-            ? 'rgba(255, 255, 255, 0.02)'
-            : 'rgba(0, 0, 0, 0.02)'
+    '@media (hover: hover)': {
+        '&:hover': {
+            backgroundColor: theme.palette.mode === 'dark'
+                ? 'rgba(255, 255, 255, 0.02)'
+                : 'rgba(0, 0, 0, 0.02)'
+        }
     }
 }));
 

@@ -493,7 +493,7 @@ const PokerLedger = () => {
                                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 2 }}>
                                                         <Box 
                                                             onClick={() => setShowGameList(!showGameList)}
-                                                            sx={{ flex: 1, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
+                                                            sx={{ flex: 1, cursor: 'pointer', '@media (hover: hover)': { '&:hover': { opacity: 0.8 } } }}
                                                         >
                                                             <Typography variant="body1" fontWeight={500}>
                                                                 {selectedGame.nickname || formatGameDateTime(selectedGame.startTime)}
@@ -502,7 +502,7 @@ const PokerLedger = () => {
                                                                 {formatGameDateTime(selectedGame.startTime)} • {selectedGame.sessionResults?.length || selectedGame.playersInfos?.length || 0} players
                                                             </Typography>
                                                         </Box>
-                                                        <Button variant="outlined" onClick={() => setShowGameList(!showGameList)} size="small" sx={{ borderRadius: 2 }}>
+                                                        <Button variant="outlined" onClick={() => setShowGameList(!showGameList)} size="small">
                                                             {showGameList ? 'Hide' : 'Change'}
                                                         </Button>
                                                     </Box>

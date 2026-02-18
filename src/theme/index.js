@@ -158,6 +158,17 @@ export const createAppTheme = (isDarkMode) => {
           },
         },
       },
+      MuiButtonBase: {
+        styleOverrides: {
+          root: {
+            '@media (hover: none)': {
+              '&:hover': {
+                backgroundColor: 'transparent',
+              },
+            },
+          },
+        },
+      },
       MuiButton: {
         styleOverrides: {
           root: {
@@ -165,20 +176,35 @@ export const createAppTheme = (isDarkMode) => {
             padding: '10px 20px',
             fontSize: '0.9375rem',
             textTransform: 'none',
+            fontWeight: 500,
           },
           contained: {
             boxShadow: 'none',
-            '&:hover': {
-              boxShadow: isDarkMode 
-                ? '0 0 0 1px rgba(250, 250, 250, 0.25), 0 4px 12px rgba(250, 250, 250, 0.08)' 
-                : '0 4px 12px rgba(0, 0, 0, 0.15)',
+            fontWeight: 600,
+            transition: 'box-shadow 0.2s ease, filter 0.2s ease',
+            '@media (hover: hover)': {
+              '&:hover': {
+                boxShadow: isDarkMode
+                  ? '0 0 0 1px rgba(250, 250, 250, 0.25), 0 4px 12px rgba(250, 250, 250, 0.1)'
+                  : '0 4px 12px rgba(0, 0, 0, 0.15)',
+                filter: 'brightness(1.05)',
+              },
             },
           },
           outlined: {
             borderColor: isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
-            '&:hover': {
-              borderColor: palette.primary.main,
-              backgroundColor: alpha(palette.primary.main, 0.08),
+            '@media (hover: hover)': {
+              '&:hover': {
+                borderColor: palette.primary.main,
+                backgroundColor: alpha(palette.primary.main, 0.08),
+              },
+            },
+          },
+          text: {
+            '@media (hover: hover)': {
+              '&:hover': {
+                backgroundColor: alpha(palette.primary.main, 0.08),
+              },
             },
           },
         },
@@ -191,11 +217,13 @@ export const createAppTheme = (isDarkMode) => {
             border: `1px solid ${palette.divider}`,
             boxShadow: 'none',
             transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-            '&:hover': {
-              borderColor: alpha(palette.primary.main, 0.3),
-              boxShadow: isDarkMode
-                ? '0 4px 20px rgba(0,0,0,0.2)'
-                : '0 4px 20px rgba(0,0,0,0.06)',
+            '@media (hover: hover)': {
+              '&:hover': {
+                borderColor: alpha(palette.primary.main, 0.3),
+                boxShadow: isDarkMode
+                  ? '0 4px 20px rgba(0,0,0,0.2)'
+                  : '0 4px 20px rgba(0,0,0,0.06)',
+              },
             },
           },
         },
@@ -220,8 +248,10 @@ export const createAppTheme = (isDarkMode) => {
             '& .MuiOutlinedInput-root': {
               borderRadius: 8,
               backgroundColor: isDarkMode ? alpha('#ffffff', 0.03) : alpha('#000000', 0.02),
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: alpha(palette.primary.main, 0.5),
+              '@media (hover: hover)': {
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: alpha(palette.primary.main, 0.5),
+                },
               },
               '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                 borderColor: palette.primary.main,
@@ -279,8 +309,10 @@ export const createAppTheme = (isDarkMode) => {
             transition: 'background-color 0.2s ease',
             '&.Mui-selected': {
               backgroundColor: alpha(palette.primary.main, 0.12),
-              '&:hover': {
-                backgroundColor: alpha(palette.primary.main, 0.18),
+              '@media (hover: hover)': {
+                '&:hover': {
+                  backgroundColor: alpha(palette.primary.main, 0.18),
+                },
               },
             },
           },

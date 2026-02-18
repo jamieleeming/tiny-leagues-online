@@ -176,10 +176,12 @@ export const GameSelector = ({
                                             borderRadius: 2,
                                             mx: 0.5,
                                             mb: 0.5,
-                                            '&.Mui-selected': {
-                                                backgroundColor: 'rgba(250, 250, 250, 0.08)',
-                                                '&:hover': { backgroundColor: 'rgba(250, 250, 250, 0.12)' },
-                                            },
+'&.Mui-selected': {
+                                        backgroundColor: 'rgba(250, 250, 250, 0.08)',
+                                        '@media (hover: hover)': {
+                                            '&:hover': { backgroundColor: 'rgba(250, 250, 250, 0.12)' },
+                                        },
+                                    },
                                         }}
                                     >
                                         <ListItemText 

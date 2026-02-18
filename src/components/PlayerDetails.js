@@ -174,7 +174,7 @@ export const PlayerDetails = ({
                                                 variant="contained" 
                                                 onClick={handleSaveVenmoId}
                                                 disabled={!newVenmoId.trim()}
-                                                sx={{ fontWeight: 600, minWidth: 90 }}
+                                                sx={{ minWidth: 90 }}
                                             >
                                                 Save
                                             </Button>

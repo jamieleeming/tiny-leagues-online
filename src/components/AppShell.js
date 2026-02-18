@@ -118,10 +118,12 @@ export const AppShell = ({ children, isDarkMode, onToggleDarkMode }) => {
                                         bgcolor: (t) => t.palette.mode === 'dark'
                                             ? 'rgba(250, 250, 250, 0.08)'
                                             : 'rgba(82, 82, 82, 0.12)',
-                                        '&:hover': {
-                                            bgcolor: (t) => t.palette.mode === 'dark'
-                                                ? 'rgba(250, 250, 250, 0.12)'
-                                                : 'rgba(82, 82, 82, 0.16)',
+                                        '@media (hover: hover)': {
+                                            '&:hover': {
+                                                bgcolor: (t) => t.palette.mode === 'dark'
+                                                    ? 'rgba(250, 250, 250, 0.12)'
+                                                    : 'rgba(82, 82, 82, 0.16)',
+                                            },
                                         },
                                     },
                                 }}

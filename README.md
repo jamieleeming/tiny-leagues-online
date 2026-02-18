@@ -13,6 +13,7 @@ A web application for managing poker game settlements and Venmo payments. Built 
 - **Theme:** Dark-first with off-white accent (#fafafa), Plus Jakarta Sans
 - **Pages:** Ledgers (two-panel layout), Games, Rules, Settings (modal)
 - **Polish:** Page fade transitions, card hover effects, mobile safe-area support
+- **Buttons:** Unified design with subtle hover (contained/outlined/text variants, startIcon support)
 
 ## Project structure
 

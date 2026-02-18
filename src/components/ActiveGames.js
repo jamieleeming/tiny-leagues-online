@@ -456,7 +456,6 @@ export const ActiveGames = () => {
                             variant="contained"
                             startIcon={<AddIcon />}
                             onClick={() => setShowPostForm(!showPostForm)}
-                            sx={{ fontWeight: 600 }}
                         >
                             Post Game
                         </Button>
@@ -539,7 +538,6 @@ export const ActiveGames = () => {
                                     type="submit"
                                     variant="contained"
                                     disabled={isSubmitting}
-                                    sx={{ fontWeight: 600 }}
                                 >
                                     {isSubmitting ? <CircularProgress size={24} /> : 'Post Game'}
                                 </Button>
@@ -622,7 +620,7 @@ export const ActiveGames = () => {
                                         href={game.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        sx={{ flex: 1, fontWeight: 600 }}
+                                        sx={{ flex: 1 }}
                                     >
                                         Go to Game
                                     </Button>
@@ -653,8 +651,10 @@ export const ActiveGames = () => {
                                                         px: 1,
                                                         cursor: 'pointer',
                                                         borderRadius: 1,
-                                                        '&:hover': {
-                                                            backgroundColor: 'action.hover'
+                                                        '@media (hover: hover)': {
+                                                            '&:hover': {
+                                                                backgroundColor: 'action.hover'
+                                                            }
                                                         }
                                                     }}
                                                     onClick={() => handleToggleStrikethrough(game.id, name)}
