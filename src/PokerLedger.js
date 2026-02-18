@@ -27,12 +27,11 @@ import {
     Button,
     Card,
     CardContent,
-    ListItemText
+    Grid,
 } from '@mui/material';
 import { hasLeagueAccess, saveLeagueAccess } from './utils/leagueAuth';
 
 const PokerLedger = () => {
-
     const [selectedPlayer, setSelectedPlayer] = useState('');
     const [selectedLeague, setSelectedLeague] = useState('');
     const [leagueError, setLeagueError] = useState(null);
@@ -438,7 +437,17 @@ const PokerLedger = () => {
 
     return (
         <>
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flex: 1 }}>
+            <Container 
+                maxWidth="lg" 
+                sx={{ 
+                    mt: 4, 
+                    mb: 4, 
+                    flex: 1,
+                    background: (theme) => theme.palette.mode === 'dark' 
+                        ? 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(250, 250, 250, 0.04) 0%, transparent 50%)'
+                        : undefined,
+                }}
+            >
                 <Box sx={{ position: 'relative' }}>
                         {showLeaguePassword && (
                             <LeaguePassword 
@@ -453,18 +462,13 @@ const PokerLedger = () => {
                         
                         <Fade 
                             in={showGameSelector} 
-                            timeout={{
-                                enter: 300,
-                                exit: 300
-                            }}
-                            style={{ 
-                                transitionDelay: showGameSelector ? '200ms' : '0ms'
-                            }}
+                            timeout={{ enter: 300, exit: 300 }}
+                            style={{ transitionDelay: showGameSelector ? '200ms' : '0ms' }}
                             unmountOnExit
                         >
-                            <div>
-                                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Typography variant="h4" component="h1">
+                            <Box>
+                                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                                    <Typography variant="h5" component="h1" fontWeight={600}>
                                         Ledgers
                                     </Typography>
                                     <UploadGame 
@@ -479,106 +483,75 @@ const PokerLedger = () => {
                                         }}
                                     />
                                 </Box>
-                                
-                                {selectedGame && (
-                                    <Card sx={{ mb: 2 }}>
-                                        <CardContent>
-                                            <Box sx={{ 
-                                                display: 'flex', 
-                                                justifyContent: 'space-between', 
-                                                alignItems: { xs: 'flex-start', sm: 'center' },
-                                                gap: 2
-                                            }}>
-                                                <Box 
-                                                    onClick={() => setShowGameList(!showGameList)}
-                                                    sx={{ 
-                                                        flex: 1,
-                                                        cursor: 'pointer',
-                                                        textAlign: 'left',
-                                                        '&:hover': {
-                                                            opacity: 0.7
-                                                        }
-                                                    }}
-                                                >
-                                                    <Typography variant="body1" sx={{ fontWeight: 500, display: { xs: 'block', sm: 'inline' } }}>
-                                                        {selectedGame.nickname || formatGameDateTime(selectedGame.startTime)}
-                                                    </Typography>
-                                                    <Typography 
-                                                        variant="body2" 
-                                                        color="text.secondary" 
-                                                        sx={{ 
-                                                            ml: { xs: 0, sm: 1 },
-                                                            display: { xs: 'block', sm: 'inline' },
-                                                            mt: { xs: 0.5, sm: 0 }
-                                                        }}
-                                                    >
-                                                        {formatGameDateTime(selectedGame.startTime)} • {selectedGame.sessionResults?.length || selectedGame.playersInfos?.length || 0} players
-                                                    </Typography>
-                                                </Box>
-                                                <Button
-                                                    variant="outlined"
-                                                    onClick={() => setShowGameList(!showGameList)}
-                                                    sx={{ 
-                                                        flexShrink: 0,
-                                                        alignSelf: { xs: 'flex-start', sm: 'center' }
-                                                    }}
-                                                >
-                                                    {showGameList ? 'Hide Games' : 'Change Game'}
-                                                </Button>
-                                            </Box>
-                                        </CardContent>
-                                    </Card>
-                                )}
-                                
-                                {(!selectedGame || showGameList) && (
-                                    <GameSelector 
-                                        selectedGame={selectedGame}
-                                        games={games}
-                                        setSelectedGame={setSelectedGame}
-                                        onGameSelect={(game) => {
-                                            setSelectedGame(game);
-                                            setShowGameList(false);
-                                        }}
-                                        setLedgerData={setLedgerData}
-                                        processFile={processFile}
-                                        selectedLeague={selectedLeague}
-                                        refreshGames={fetchGames}
-                                        isLoadingGames={isLoadingGames}
-                                        gamesError={gamesError}
-                                        setVenmoIds={setVenmoIds}
-                                        setSelectedPlayer={setSelectedPlayer}
-                                    />
-                                )}
-                                <Fade 
-                                    in={Boolean(selectedGame)} 
-                                    unmountOnExit
-                                    timeout={500}
-                                >
-                                    <div>
-                                        <PlayerDetails 
-                                            selectedPlayer={selectedPlayer}
-                                            setSelectedPlayer={setSelectedPlayer}
-                                            ledgerData={ledgerData}
-                                            venmoIds={venmoIds}
-                                        />
-                                    </div>
-                                </Fade>
-                                <Fade 
-                                    in={Boolean(selectedPlayer)} 
-                                    unmountOnExit
-                                    timeout={500}
-                                >
-                                    <div>
-                                        <SessionResults 
-                                            ledgerData={ledgerData}
-                                            formatAmount={formatAmount}
-                                            selectedGame={selectedGame}
-                                            selectedPlayer={selectedPlayer}
-                                            onSettleUp={handleSettleUp}
-                                        />
-                                    </div>
-                                </Fade>
-                            </div>
+
+                                <Grid container spacing={3} alignItems="flex-start">
+                                    {/* Left panel: Game selector + Player details */}
+                                    <Grid item xs={12} md={selectedGame ? 4 : 12}>
+                                        {selectedGame && (
+                                            <Card sx={{ mb: 2 }} elevation={0}>
+                                                <CardContent sx={{ py: 1.5 }}>
+                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 2 }}>
+                                                        <Box 
+                                                            onClick={() => setShowGameList(!showGameList)}
+                                                            sx={{ flex: 1, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
+                                                        >
+                                                            <Typography variant="body1" fontWeight={500}>
+                                                                {selectedGame.nickname || formatGameDateTime(selectedGame.startTime)}
+                                                            </Typography>
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                {formatGameDateTime(selectedGame.startTime)} • {selectedGame.sessionResults?.length || selectedGame.playersInfos?.length || 0} players
+                                                            </Typography>
+                                                        </Box>
+                                                        <Button variant="outlined" onClick={() => setShowGameList(!showGameList)} size="small" sx={{ borderRadius: 2 }}>
+                                                            {showGameList ? 'Hide' : 'Change'}
+                                                        </Button>
+                                                    </Box>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+                                        {(!selectedGame || showGameList) && (
+                                            <GameSelector 
+                                                selectedGame={selectedGame}
+                                                games={games}
+                                                setSelectedGame={setSelectedGame}
+                                                onGameSelect={(game) => {
+                                                    setSelectedGame(game);
+                                                    setShowGameList(false);
+                                                }}
+                                                setLedgerData={setLedgerData}
+                                                processFile={processFile}
+                                                selectedLeague={selectedLeague}
+                                                refreshGames={fetchGames}
+                                                isLoadingGames={isLoadingGames}
+                                                gamesError={gamesError}
+                                                setVenmoIds={setVenmoIds}
+                                                setSelectedPlayer={setSelectedPlayer}
+                                            />
+                                        )}
+                                        {selectedGame && !showGameList && (
+                                            <PlayerDetails 
+                                                selectedPlayer={selectedPlayer}
+                                                setSelectedPlayer={setSelectedPlayer}
+                                                ledgerData={ledgerData}
+                                                venmoIds={venmoIds}
+                                            />
+                                        )}
+                                    </Grid>
+
+                                    {/* Right panel: Session results (desktop only when game selected) */}
+                                    {selectedGame && ledgerData && (
+                                        <Grid item xs={12} md={8}>
+                                            <SessionResults 
+                                                ledgerData={ledgerData}
+                                                formatAmount={formatAmount}
+                                                selectedGame={selectedGame}
+                                                selectedPlayer={selectedPlayer}
+                                                onSettleUp={handleSettleUp}
+                                            />
+                                        </Grid>
+                                    )}
+                                </Grid>
+                            </Box>
                         </Fade>
                 </Box>
             </Container>
@@ -594,7 +567,7 @@ const PokerLedger = () => {
                             onClose={handleCloseNotification} 
                             severity={notification.type}
                             variant="filled"
-                            sx={{ width: '100%' }}
+                            sx={{ width: '100%', borderRadius: 2 }}
                         >
                             {notification.message}
                         </Alert>

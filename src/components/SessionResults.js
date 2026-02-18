@@ -50,25 +50,35 @@ export const SessionResults = ({
     };
 
     return (
-        <Card sx={{ mt: 2 }}>
+        <Card elevation={0}>
             <CardContent>
-                <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 1, 
-                    mb: 2
-                }}>
-                    <MoneyIcon color="primary" />
-                    <Typography variant="h6" component="h2">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                    <Box sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        bgcolor: 'rgba(250, 250, 250, 0.08)',
+                    }}>
+                        <MoneyIcon sx={{ color: 'primary.main', fontSize: 22 }} />
+                    </Box>
+                    <Typography variant="subtitle1" component="h2" fontWeight={600}>
                         Results
                     </Typography>
                 </Box>
 
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 0 }}>
                     <Tabs 
                         value={tabValue} 
                         onChange={handleTabChange}
                         aria-label="session tabs"
+                        sx={{
+                            minHeight: 44,
+                            '& .MuiTab-root': { fontWeight: 500, textTransform: 'none' },
+                            '& .Mui-selected': { fontWeight: 600 }
+                        }}
                     >
                         <Tab label="Settlements" />
                         <Tab label="Ledger" />

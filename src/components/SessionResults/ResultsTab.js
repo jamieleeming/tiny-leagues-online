@@ -7,7 +7,9 @@ import {
     TableRow,
     Box,
     Paper,
-    Typography
+    Typography,
+    useTheme,
+    useMediaQuery,
 } from '@mui/material';
 import { 
     TrendingUp as TrendingUpIcon, 
@@ -22,6 +24,9 @@ import {
 } from './ResultsTab.styles';
 
 export const ResultsTab = ({ ledgerData, formatAmount }) => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
     if (!ledgerData || !Array.isArray(ledgerData)) {
         return (
             <Box sx={{ p: 2 }}>
@@ -40,6 +45,46 @@ export const ResultsTab = ({ ledgerData, formatAmount }) => {
     
     // Sort players by net amount (highest to lowest)
     const sortedResults = resultsWithNet.sort((a, b) => b.net - a.net);
+
+    if (isMobile) {
+        return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {sortedResults.map((result) => (
+                    <Paper
+                        key={result.id}
+                        elevation={0}
+                        sx={{
+                            p: 2,
+                            borderRadius: 2,
+                            border: `1px solid ${theme.palette.divider}`,
+                        }}
+                    >
+                        <Typography fontWeight={600} sx={{ mb: 1.5 }}>
+                            {result.name}
+                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, fontSize: '0.875rem' }}>
+                            <Typography variant="body2" color="text.secondary">
+                                Buy-in: {formatAmount(result.buyIn)}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Cash out: {formatAmount(result.cashOut)}
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                fontWeight={700}
+                                color={result.net > 0 ? 'success.main' : result.net < 0 ? 'error.main' : 'text.primary'}
+                                sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                            >
+                                {result.net > 0 ? <TrendingUpIcon fontSize="small" /> : null}
+                                {result.net < 0 ? <TrendingDownIcon fontSize="small" /> : null}
+                                Net: {formatAmount(result.net)}
+                            </Typography>
+                        </Box>
+                    </Paper>
+                ))}
+            </Box>
+        );
+    }
 
     return (
         <TableContainer component={Paper} elevation={0}>

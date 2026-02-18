@@ -1,26 +1,34 @@
 import React, { useState, useMemo } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme, CssBaseline, useMediaQuery } from '@mui/material';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { ThemeProvider, CssBaseline, useMediaQuery, Fade } from '@mui/material';
+import { createAppTheme } from './theme';
 import './App.css';
 import PokerLedger from './PokerLedger';
 import { Rules } from './components/Rules';
-import { Header } from './components/Header';
+import { AppShell } from './components/AppShell';
 import { ActiveGames } from './components/ActiveGames';
+
+function RoutesWithTransition() {
+  const location = useLocation();
+  return (
+    <Fade in timeout={{ enter: 220, exit: 150 }} key={location.pathname}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Routes>
+          <Route path="/rules" element={<Rules />} />
+          <Route path="/active-games" element={<ActiveGames />} />
+          <Route path="/" element={<PokerLedger />} />
+        </Routes>
+      </div>
+    </Fade>
+  );
+}
 
 function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
   const [manualDarkMode, setManualDarkMode] = useState(null);
-  const isDarkMode = manualDarkMode ?? prefersDarkMode;
+  const isDarkMode = manualDarkMode !== null ? manualDarkMode : (prefersDarkMode ?? true);
 
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: isDarkMode ? 'dark' : 'light',
-        }
-      }),
-    [isDarkMode]
-  );
+  const theme = useMemo(() => createAppTheme(isDarkMode), [isDarkMode]);
 
   const toggleDarkMode = () => {
     setManualDarkMode(prev => 
@@ -33,15 +41,9 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-          <Header 
-            isDarkMode={isDarkMode}
-            onToggleDarkMode={toggleDarkMode}
-          />
-          <Routes>
-            <Route path="/rules" element={<Rules />} />
-            <Route path="/active-games" element={<ActiveGames />} />
-            <Route path="/" element={<PokerLedger />} />
-          </Routes>
+          <AppShell isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode}>
+            <RoutesWithTransition />
+          </AppShell>
         </div>
       </ThemeProvider>
     </Router>

@@ -115,31 +115,37 @@ export const GameSelector = ({
     };
 
     return (
-        <Card>
-            <CardContent>
-                <Typography variant="h6" component="h2" sx={{ mb: 2, textAlign: 'left' }}>
+        <Card elevation={0}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                <Typography variant="subtitle1" component="h2" fontWeight={600} sx={{ mb: 1.5, px: 1, color: 'text.primary' }}>
                     Select Game
                 </Typography>
 
-                <List>
+                <List disablePadding>
                     {sortedGames.map((game, index) => (
                         <React.Fragment key={game.id}>
                             <ListItemButton 
                                 selected={selectedGame?.id === game.id}
                                 onClick={() => handleGameClick(game)}
                                 sx={{
+                                    borderRadius: 2,
+                                    mx: 0.5,
+                                    mb: 0.5,
                                     '&.Mui-selected': {
-                                        backgroundColor: 'action.selected'
-                                    }
+                                        backgroundColor: 'rgba(250, 250, 250, 0.08)',
+                                        '&:hover': { backgroundColor: 'rgba(250, 250, 250, 0.12)' },
+                                    },
                                 }}
                             >
                                 <ListItemText 
                                     primary={game.nickname || formatDateTime(game.startTime)}
                                     secondary={`${formatDateTime(game.startTime)} • ${game.sessionResults?.length || 0} players`}
+                                    primaryTypographyProps={{ fontWeight: 500, fontSize: '0.9375rem' }}
+                                    secondaryTypographyProps={{ fontSize: '0.8125rem', color: 'text.secondary' }}
                                 />
                             </ListItemButton>
                             {index < sortedGames.length - 1 && (
-                                <Divider variant="inset" component="li" />
+                                <Divider variant="inset" component="li" sx={{ mx: 0 }} />
                             )}
                         </React.Fragment>
                     ))}

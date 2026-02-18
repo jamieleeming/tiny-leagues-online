@@ -427,7 +427,16 @@ export const ActiveGames = () => {
     }
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Container 
+            maxWidth="lg" 
+            sx={{ 
+                mt: 4, 
+                mb: 4,
+                background: (theme) => theme.palette.mode === 'dark' 
+                    ? 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(250, 250, 250, 0.04) 0%, transparent 50%)'
+                    : undefined,
+            }}
+        >
             <Fade 
                 in={fadeIn} 
                 timeout={{
@@ -440,22 +449,23 @@ export const ActiveGames = () => {
             >
                 <div>
                     <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" component="h1">
+                        <Typography variant="h5" component="h1" fontWeight={600}>
                             Games
                         </Typography>
                         <Button
                             variant="contained"
                             startIcon={<AddIcon />}
                             onClick={() => setShowPostForm(!showPostForm)}
+                            sx={{ fontWeight: 600 }}
                         >
                             Post Game
                         </Button>
                     </Box>
 
             {showPostForm && (
-                <Card sx={{ mb: 3 }}>
-                    <CardContent>
-                        <Typography variant="h6" gutterBottom>
+                <Card sx={{ mb: 3 }} elevation={0}>
+                    <CardContent sx={{ p: 3 }}>
+                        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                             Post New Game
                         </Typography>
                         <form onSubmit={handlePostGame}>
@@ -529,6 +539,7 @@ export const ActiveGames = () => {
                                     type="submit"
                                     variant="contained"
                                     disabled={isSubmitting}
+                                    sx={{ fontWeight: 600 }}
                                 >
                                     {isSubmitting ? <CircularProgress size={24} /> : 'Post Game'}
                                 </Button>
@@ -561,7 +572,7 @@ export const ActiveGames = () => {
                     <CircularProgress />
                 </Box>
             ) : games.length === 0 ? (
-                <Card>
+                <Card elevation={0} sx={{ py: 6 }}>
                     <CardContent>
                         <Typography variant="body1" color="text.secondary" align="center">
                             No active games. Be the first to post one!
@@ -579,18 +590,20 @@ export const ActiveGames = () => {
                                     }
                                 }}
                                 id={`game-${game.id}`}
+                                elevation={0}
                                 sx={{ 
                                     height: '100%',
                                     display: 'flex',
-                                    flexDirection: 'column'
+                                    flexDirection: 'column',
                                 }}
                             >
                             <CardContent sx={{ 
                                 flex: 1,
                                 display: 'flex',
-                                flexDirection: 'column'
+                                flexDirection: 'column',
+                                p: 2.5
                             }}>
-                                <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
+                                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 1 }}>
                                     {game.variant || game.title}
                                 </Typography>
                                 
@@ -602,14 +615,14 @@ export const ActiveGames = () => {
                                     {game.variant && game.title ? game.title : '\u00A0'}
                                 </Typography>
 
-                                <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+                                <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                                     <Button
                                         variant="contained"
                                         startIcon={<OpenInNewIcon />}
                                         href={game.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        sx={{ flex: 1 }}
+                                        sx={{ flex: 1, fontWeight: 600 }}
                                     >
                                         Go to Game
                                     </Button>
@@ -680,7 +693,7 @@ export const ActiveGames = () => {
                                                 [game.id]: e.target.value
                                             }))
                                         }
-                                        sx={{ flex: 1 }}
+                                        sx={{ flex: 1, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                                     />
                                     <Button
                                         variant="outlined"

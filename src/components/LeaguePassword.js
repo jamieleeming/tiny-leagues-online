@@ -11,7 +11,6 @@ import {
     Fade
 } from '@mui/material';
 import { Lock as LockIcon } from '@mui/icons-material';
-import '../styles/LeaguePassword.css';
 
 export const LeaguePassword = ({ 
     selectedLeague, 
@@ -57,31 +56,53 @@ export const LeaguePassword = ({
     return (
         <Fade in={isVisible} timeout={300}>
             <Card 
-                elevation={2}
+                elevation={0}
                 sx={{
                     position: 'relative',
-                    overflow: 'visible'
+                    overflow: 'visible',
+                    maxWidth: 400,
+                    mx: 'auto',
+                    background: (theme) => theme.palette.mode === 'dark' 
+                        ? 'linear-gradient(135deg, rgba(24,24,27,0.95) 0%, rgba(39,39,42,0.9) 100%)'
+                        : undefined,
+                    boxShadow: (theme) => theme.palette.mode === 'dark'
+                        ? '0 0 0 1px rgba(255,255,255,0.06), 0 24px 48px -12px rgba(0,0,0,0.5)'
+                        : undefined,
                 }}
             >
-                <CardContent sx={{ p: 3 }}>
-                    <Box sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 1, 
-                        mb: 2 
-                    }}>
-                        <LockIcon color="action" />
-                        <Typography variant="h6" component="h2">
-                            League Password
+                <CardContent sx={{ p: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                        <Box
+                            sx={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: 2,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                bgcolor: (theme) => theme.palette.mode === 'dark' 
+                                    ? 'rgba(250, 250, 250, 0.12)' 
+                                    : 'rgba(0, 0, 0, 0.08)',
+                                border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(250, 250, 250, 0.15)' : 'rgba(0, 0, 0, 0.12)'}`,
+                            }}
+                        >
+                            <LockIcon sx={{ color: 'primary.main', fontSize: 24 }} />
+                        </Box>
+                        <Typography variant="h6" component="h2" fontWeight={600}>
+                            League Access
                         </Typography>
                     </Box>
+
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Enter your league code to continue
+                    </Typography>
 
                     <form onSubmit={handleSubmit}>
                         <Box sx={{ 
                             display: 'flex', 
                             flexDirection: { xs: 'column', sm: 'row' },
                             gap: 2,
-                            alignItems: { xs: 'stretch', sm: 'flex-start' }
+                            alignItems: { xs: 'stretch', sm: 'flex-end' }
                         }}>
                             <TextField
                                 value={selectedLeague || ''} 
@@ -90,44 +111,31 @@ export const LeaguePassword = ({
                                     setSelectedLeague(input);
                                     setLeagueError(null);
                                 }}
-                                placeholder="Enter league password"
+                                placeholder="e.g. ABC123XYZ"
                                 inputProps={{ maxLength: 12 }}
                                 disabled={isLeagueValidated}
-                                size="medium"
                                 fullWidth
-                                variant="outlined"
-                                sx={{
-                                    maxWidth: { sm: '300px' },
-                                    '& .MuiOutlinedInput-root': {
-                                        backgroundColor: 'background.paper',
-                                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: 'primary.main'
-                                        }
-                                    },
-                                    '& .MuiOutlinedInput-input': {
-                                        color: 'text.primary'
-                                    },
-                                    '& .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'divider'
-                                    }
-                                }}
+                                sx={{ maxWidth: { sm: 220 } }}
                             />
                             
                             {!isLeagueValidated && (
                                 <Button 
-                                    type="submit"  // Changed to submit type
+                                    type="submit"
                                     disabled={!selectedLeague || isSubmitting}
                                     variant="contained"
                                     size="large"
                                     sx={{
-                                        minWidth: '120px',
-                                        height: '56px'
+                                        minWidth: 120,
+                                        height: 48,
+                                        fontWeight: 600,
+                                        bgcolor: 'primary.main',
+                                        '&:hover': { bgcolor: 'primary.dark' },
                                     }}
                                 >
                                     {isSubmitting ? (
                                         <CircularProgress size={24} color="inherit" />
                                     ) : (
-                                        'Submit'
+                                        'Continue'
                                     )}
                                 </Button>
                             )}
@@ -139,13 +147,8 @@ export const LeaguePassword = ({
                             {leagueError && (
                                 <Alert 
                                     severity="error"
-                                    variant="filled"
-                                    sx={{ 
-                                        alignItems: 'center',
-                                        '& .MuiAlert-message': {
-                                            padding: '8px 0'
-                                        }
-                                    }}
+                                    variant="outlined"
+                                    sx={{ borderRadius: 2 }}
                                 >
                                     {leagueError}
                                 </Alert>
@@ -157,8 +160,8 @@ export const LeaguePassword = ({
                         <Fade in>
                             <Alert 
                                 severity="success"
-                                variant="filled"
-                                sx={{ mt: 2 }}
+                                variant="outlined"
+                                sx={{ mt: 2, borderRadius: 2 }}
                             >
                                 League password validated successfully!
                             </Alert>
