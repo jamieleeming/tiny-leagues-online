@@ -7,6 +7,13 @@ A web application for managing poker game settlements and Venmo payments. Built 
 - Calculate settlements between players
 - Send Venmo payments directly through the app
 
+## Design
+
+- **Layout:** Sidebar navigation on desktop (≥960px), bottom navigation on mobile
+- **Theme:** Dark-first with off-white accent (#fafafa), Plus Jakarta Sans
+- **Pages:** Ledgers (two-panel layout), Games, Rules, Settings (modal)
+- **Polish:** Page fade transitions, card hover effects, mobile safe-area support
+
 ## Project structure
 
 - `src/` - React application

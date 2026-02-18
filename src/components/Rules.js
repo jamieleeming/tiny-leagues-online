@@ -72,7 +72,16 @@ export const Rules = () => {
     // Show league password if not validated
     if (showLeaguePassword || !isLeagueValidated || !selectedLeague) {
         return (
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            <Container 
+                maxWidth="lg" 
+                sx={{ 
+                    mt: 4, 
+                    mb: 4,
+                    background: (theme) => theme.palette.mode === 'dark' 
+                        ? 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(250, 250, 250, 0.04) 0%, transparent 50%)'
+                        : undefined,
+                }}
+            >
                 <LeaguePassword 
                     selectedLeague={selectedLeague}
                     setSelectedLeague={setSelectedLeague}
@@ -87,7 +96,16 @@ export const Rules = () => {
     }
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Container 
+            maxWidth="lg" 
+            sx={{ 
+                mt: 4, 
+                mb: 4,
+                background: (theme) => theme.palette.mode === 'dark' 
+                    ? 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(250, 250, 250, 0.04) 0%, transparent 50%)'
+                    : undefined,
+            }}
+        >
             <Fade 
                 in={fadeIn} 
                 timeout={{
@@ -99,9 +117,28 @@ export const Rules = () => {
                 }}
             >
                 <div>
-                    <Card>
-                        <CardContent sx={{ textAlign: 'left' }}>
-                            <Typography variant="h4" component="h1" gutterBottom>
+                    <Box sx={{ mb: 3 }}>
+                        <Typography variant="h5" component="h1" fontWeight={600}>
+                            Rules
+                        </Typography>
+                    </Box>
+                    <Card elevation={0}>
+                        <CardContent sx={{ 
+                            textAlign: 'left', 
+                            p: 4,
+                            '& a': {
+                                color: 'primary.main',
+                                textDecoration: 'underline',
+                                textUnderlineOffset: 2,
+                                '&:visited': {
+                                    color: 'primary.main',
+                                },
+                                '&:hover': {
+                                    color: 'primary.light',
+                                },
+                            },
+                        }}>
+                            <Typography variant="h5" component="h2" gutterBottom fontWeight={600}>
                                 👋 Welcome to Tiny Leagues Online (Invite-Only)
                             </Typography>
 
@@ -116,15 +153,15 @@ export const Rules = () => {
                             </Typography>
                             
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>IRL games:</strong> <a href="https://tinyleagues.co" target="_blank">tinyleagues.co</a>
+                                <strong>IRL games:</strong> <a href="https://tinyleagues.co" target="_blank" rel="noopener noreferrer">tinyleagues.co</a>
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                <strong>Online games:</strong> <a href="https://online.tinyleagues.co" target="_blank">online.tinyleagues.co</a>
+                                <strong>Online games:</strong> <a href="https://online.tinyleagues.co" target="_blank" rel="noopener noreferrer">online.tinyleagues.co</a>
                             </Typography>
 
                             <Typography variant="body1" sx={{ mb: 2, color: 'error.main', fontWeight: 600 }}>
-                                You must be logged into a <a href="https://network.pokernow.com/sessions/new" target="_blank">PokerNow</a> account before sitting at any online table.
+                                You must be logged into a <a href="https://network.pokernow.com/sessions/new" target="_blank" rel="noopener noreferrer">PokerNow</a> account before sitting at any online table.
                             </Typography>
 
                             <Divider sx={{ my: 4 }} />
@@ -230,9 +267,9 @@ export const Rules = () => {
                                 p: 3, 
                                 bgcolor: 'primary.main', 
                                 color: 'primary.contrastText',
-                                borderRadius: 1
+                                borderRadius: 2
                             }}>
-                                <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
+                                <Typography variant="subtitle1" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
                                     ✅ MANDATORY ACKNOWLEDGEMENT
                                 </Typography>
                                 <Typography variant="body1">

@@ -70,20 +70,19 @@ export const SettingsModal = ({ isDarkMode, onToggleDarkMode, open, onClose, onR
                 maxWidth="sm"
                 fullWidth
                 PaperProps={{
-                    sx: {
-                        borderRadius: 2
-                    }
+                    sx: { borderRadius: 3 }
                 }}
             >
                 <DialogTitle sx={{ 
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'center',
-                    pb: 2
+                    pb: 2,
+                    fontWeight: 600
                 }}>
-                    <Box display="flex" alignItems="center" gap={1}>
+                    <Box display="flex" alignItems="center" gap={1.5}>
                         <SettingsIcon color="primary" />
-                        <Typography variant="h6">
+                        <Typography variant="h6" fontWeight={600}>
                             Settings
                         </Typography>
                     </Box>
@@ -130,7 +129,7 @@ export const SettingsModal = ({ isDarkMode, onToggleDarkMode, open, onClose, onR
                                 variant="outlined"
                                 onClick={handleSwitchLeague}
                                 fullWidth
-                                sx={{ mt: 1 }}
+                                sx={{ mt: 1, borderRadius: 2 }}
                             >
                                 Switch League
                             </Button>
@@ -147,7 +146,7 @@ export const SettingsModal = ({ isDarkMode, onToggleDarkMode, open, onClose, onR
                                 variant="outlined"
                                 onClick={handleSupportClick}
                                 fullWidth
-                                sx={{ mt: 1 }}
+                                sx={{ mt: 1, borderRadius: 2 }}
                             >
                                 Support Tiny Leagues
                             </Button>

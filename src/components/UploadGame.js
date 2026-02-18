@@ -32,14 +32,11 @@ const NicknameModal = React.memo(({
     onNicknameChange, 
     error 
 }) => (
-    <Dialog 
-        open={open} 
-        onClose={onClose}
-    >
-        <DialogTitle>Game Details</DialogTitle>
+    <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>Game Details</DialogTitle>
         <DialogContent>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-                Selected file: {selectedFile?.name}
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {selectedFile?.name}
             </Typography>
             <TextField
                 fullWidth
@@ -51,15 +48,9 @@ const NicknameModal = React.memo(({
                 sx={{ mt: 1 }}
             />
         </DialogContent>
-        <DialogActions>
-            <Button onClick={onClose}>
-                Cancel
-            </Button>
-            <Button 
-                onClick={onContinue}
-                disabled={!!error}
-                variant="contained"
-            >
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button onClick={onContinue} disabled={!!error} variant="contained" sx={{ fontWeight: 600 }}>
                 Continue
             </Button>
         </DialogActions>
@@ -672,6 +663,7 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                 startIcon={isUploading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadIcon />}
                 onClick={() => fileInputRef.current.click()}
                 disabled={isUploading || !selectedLeague}
+                sx={{ fontWeight: 600 }}
             >
                 Upload Ledger
             </Button>
@@ -698,12 +690,11 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                 maxWidth="md" 
                 fullWidth
                 onClose={() => setShowDuplicatesModal(false)}
+                PaperProps={{ sx: { borderRadius: 3 } }}
             >
-                <DialogTitle>
-                    Combine Player Records
-                </DialogTitle>
+                <DialogTitle sx={{ fontWeight: 600 }}>Combine Player Records</DialogTitle>
                 <DialogContent>
-                    <Typography sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                         Select records that belong to the same player and choose the preferred name:
                     </Typography>
                     {potentialDuplicates.map((group, groupIndex) => (
@@ -759,7 +750,7 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                         </Box>
                     ))}
                 </DialogContent>
-                <DialogActions>
+                <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
                     <Button onClick={() => {
                         setShowDuplicatesModal(false);
                         setSelectedDuplicates({});
@@ -771,6 +762,7 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
                         onClick={processDuplicates} 
                         variant="contained"
                         disabled={Object.keys(selectedDuplicates).length === 0}
+                        sx={{ fontWeight: 600 }}
                     >
                         Combine & Continue
                     </Button>
