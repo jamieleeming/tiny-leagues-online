@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme, CssBaseline, useMediaQuery } from '@mui/material';
+import { ThemeProvider, CssBaseline, useMediaQuery } from '@mui/material';
+import { createAppTheme } from './theme';
 import './App.css';
 import PokerLedger from './PokerLedger';
 import { Rules } from './components/Rules';
@@ -12,15 +13,7 @@ function App() {
   const [manualDarkMode, setManualDarkMode] = useState(null);
   const isDarkMode = manualDarkMode ?? prefersDarkMode;
 
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: isDarkMode ? 'dark' : 'light',
-        }
-      }),
-    [isDarkMode]
-  );
+  const theme = useMemo(() => createAppTheme(isDarkMode), [isDarkMode]);
 
   const toggleDarkMode = () => {
     setManualDarkMode(prev => 
