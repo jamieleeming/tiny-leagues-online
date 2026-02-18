@@ -599,7 +599,7 @@ export const UploadGame = ({ selectedLeague, refreshGames, onResetSelectedGame }
             
             // Reset selected game and refresh games list
             onResetSelectedGame?.();
-            await refreshGames();
+            await refreshGames(selectedLeague);
 
             setNotification({
                 open: true,
