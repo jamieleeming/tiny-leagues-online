@@ -29,33 +29,37 @@ const TLLogo = () => {
                 height: '100%'
             }}
         >
+            <defs>
+                <linearGradient id="tl-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={theme.palette.primary.main} stopOpacity={0.3} />
+                    <stop offset="100%" stopColor={theme.palette.primary.main} stopOpacity={0.8} />
+                </linearGradient>
+            </defs>
             {/* Outer ring */}
             <circle 
                 cx="50" 
                 cy="50" 
                 r="46" 
                 fill={theme.palette.background.paper}
-                stroke={theme.palette.text.primary}
-                strokeWidth="4"
+                stroke={theme.palette.mode === 'dark' ? 'rgba(148, 163, 184, 0.25)' : 'rgba(15, 23, 42, 0.08)'}
+                strokeWidth="2"
             />
-            
             {/* Inner decorative ring */}
             <circle 
                 cx="50" 
                 cy="50" 
                 r="38" 
                 fill="none"
-                stroke={theme.palette.text.primary}
+                stroke="url(#tl-ring)"
                 strokeWidth="2"
-                strokeDasharray="8 4"
+                strokeDasharray="6 6"
             />
-            
             <text
                 x="50"
                 y="60"
                 textAnchor="middle"
                 style={{
-                    font: 'bold 32px Arial',
+                    font: 'bold 28px Inter, system-ui, sans-serif',
                     fill: theme.palette.text.primary
                 }}
             >
@@ -65,13 +69,36 @@ const TLLogo = () => {
     );
 };
 
+const NavLink = ({ to, children, isActive, theme }) => (
+    <Button
+        component={Link}
+        to={to}
+        sx={{
+            color: isActive ? theme.palette.primary.main : 'text.secondary',
+            textTransform: 'none',
+            fontWeight: isActive ? 600 : 500,
+            fontSize: '0.9375rem',
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            minHeight: 40,
+            '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(124, 156, 255, 0.08)' 
+                    : 'rgba(37, 99, 235, 0.06)',
+                color: theme.palette.primary.main
+            }
+        }}
+    >
+        {children}
+    </Button>
+);
+
 export const Header = ({ isDarkMode, onToggleDarkMode }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const location = useLocation();
     
-    // Check if user has league access to show Games button
-    // Use state and effect to make it reactive to changes
     const [hasLeague, setHasLeague] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
     
@@ -81,10 +108,8 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
             setHasLeague(storedLeague && hasLeagueAccess(storedLeague));
         };
         
-        // Check on mount and when location changes
         checkLeagueAccess();
         
-        // Listen for storage changes (when league is validated in another component)
         const handleStorageChange = (e) => {
             if (e.key === 'lastLeague' || e.key === null) {
                 checkLeagueAccess();
@@ -92,9 +117,6 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
         };
         
         window.addEventListener('storage', handleStorageChange);
-        
-        // Also check periodically in case localStorage is updated in same window
-        // (storage event only fires for changes in other windows/tabs)
         const interval = setInterval(checkLeagueAccess, 1000);
         
         return () => {
@@ -106,141 +128,88 @@ export const Header = ({ isDarkMode, onToggleDarkMode }) => {
     return (
         <AppBar 
             position="static" 
-            elevation={1}
+            elevation={0}
             sx={{
                 backgroundColor: theme.palette.background.paper,
                 color: theme.palette.text.primary,
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                py: { xs: 1, sm: 2 },
-                pt: { xs: 2, sm: 2 }
+                borderBottom: `1px solid ${theme.palette.divider}`,
+                py: { xs: 1, sm: 0 }
             }}
         >
             <Container maxWidth="lg">
                 <Toolbar 
                     disableGutters 
                     sx={{ 
-                        minHeight: { xs: 'auto', sm: 70 },
-                        height: { xs: 'auto', sm: 70 },
+                        minHeight: { xs: 56, sm: 72 },
                         maxWidth: 1200,
                         mx: 'auto',
-                        py: { xs: 0, sm: 0 }
+                        justifyContent: 'space-between'
                     }}
                 >
                     <Box 
                         display="flex" 
-                        flexDirection={{ xs: 'column', sm: 'row' }}
-                        alignItems={{ xs: 'center', sm: 'center' }}
-                        width="100%"
-                        justifyContent="space-between"
-                        gap={{ xs: 0, sm: 0 }}
+                        alignItems="center" 
+                        gap={2}
                     >
                         <Box 
-                            display="flex" 
-                            alignItems="center" 
-                            gap={3}
-                            justifyContent={{ xs: 'center', sm: 'flex-start' }}
-                            width={{ xs: '100%', sm: 'auto' }}
+                            sx={{ 
+                                width: isMobile ? 40 : 48,
+                                height: isMobile ? 40 : 48,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
                         >
-                            <Box 
-                                sx={{ 
-                                    width: isMobile ? 43 : 54,
-                                    height: isMobile ? 43 : 54,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                <TLLogo />
-                            </Box>
-                            <Typography 
-                                variant={isMobile ? "h6" : "h5"} 
-                                component="h1"
-                                sx={{ 
-                                    fontWeight: 600,
-                                    color: 'text.primary',
-                                    lineHeight: 1.2,
-                                    ml: 1,
-                                    m: 0,
-                                    fontSize: isMobile ? '1.25rem' : '1.5rem'
-                                }}
-                            >
-                                Tiny Leagues Online
-                            </Typography>
+                            <TLLogo />
                         </Box>
-                        <Box 
-                            display="flex" 
-                            alignItems="center" 
-                            gap={2}
-                            width={{ xs: '100%', sm: 'auto' }}
-                            justifyContent={{ xs: 'center', sm: 'flex-end' }}
+                        <Typography 
+                            variant="h6" 
+                            component="h1"
+                            sx={{ 
+                                fontWeight: 600,
+                                color: 'text.primary',
+                                letterSpacing: '-0.02em',
+                                fontSize: { xs: '1.125rem', sm: '1.25rem' }
+                            }}
                         >
-                            {hasLeague && (
-                                <Button
-                                    component={Link}
-                                    to="/"
-                                    sx={{
-                                        color: location.pathname === '/' 
-                                            ? theme.palette.primary.main 
-                                            : 'text.primary',
-                                        textTransform: 'none',
-                                        fontWeight: location.pathname === '/' ? 600 : 400,
-                                        '&:hover': {
-                                            backgroundColor: 'transparent',
-                                            color: theme.palette.primary.main
-                                        }
-                                    }}
-                                >
+                            Tiny Leagues Online
+                        </Typography>
+                    </Box>
+                    <Box 
+                        display="flex" 
+                        alignItems="center" 
+                        gap={0.5}
+                    >
+                        {hasLeague && (
+                            <>
+                                <NavLink to="/" isActive={location.pathname === '/'} theme={theme}>
                                     Ledgers
-                                </Button>
-                            )}
-                            {hasLeague && (
-                                <Button
-                                    component={Link}
-                                    to="/active-games"
-                                    sx={{
-                                        color: location.pathname === '/active-games' 
-                                            ? theme.palette.primary.main 
-                                            : 'text.primary',
-                                        textTransform: 'none',
-                                        fontWeight: location.pathname === '/active-games' ? 600 : 400,
-                                        '&:hover': {
-                                            backgroundColor: 'transparent',
-                                            color: theme.palette.primary.main
-                                        }
-                                    }}
-                                >
+                                </NavLink>
+                                <NavLink to="/active-games" isActive={location.pathname === '/active-games'} theme={theme}>
                                     Games
-                                </Button>
-                            )}
-                            {hasLeague && (
-                                <Button
-                                    component={Link}
-                                    to="/rules"
-                                    sx={{
-                                        color: location.pathname === '/rules' 
-                                            ? theme.palette.primary.main 
-                                            : 'text.primary',
-                                        textTransform: 'none',
-                                        fontWeight: location.pathname === '/rules' ? 600 : 400,
-                                        '&:hover': {
-                                            backgroundColor: 'transparent',
-                                            color: theme.palette.primary.main
-                                        }
-                                    }}
-                                >
+                                </NavLink>
+                                <NavLink to="/rules" isActive={location.pathname === '/rules'} theme={theme}>
                                     Rules
-                                </Button>
-                            )}
-                            {hasLeague && (
+                                </NavLink>
                                 <IconButton 
                                     onClick={() => setSettingsOpen(true)}
                                     color="inherit"
-                                    size="large"
+                                    size="medium"
+                                    sx={{
+                                        ml: 0.5,
+                                        color: 'text.secondary',
+                                        '&:hover': {
+                                            backgroundColor: theme.palette.mode === 'dark' 
+                                                ? 'rgba(148, 163, 184, 0.08)' 
+                                                : 'rgba(15, 23, 42, 0.04)',
+                                            color: 'text.primary'
+                                        }
+                                    }}
                                 >
-                                    <SettingsIcon />
+                                    <SettingsIcon sx={{ fontSize: 22 }} />
                                 </IconButton>
-                            )}
-                        </Box>
+                            </>
+                        )}
                     </Box>
                 </Toolbar>
             </Container>
