@@ -1,0 +1,18 @@
+# Dependabot configuration
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests: 5
+
+    # Ignore CRA/react-scripts chain - staying on CRA for now, no fixes available
+    ignore:
+      - dependency-name: "react-scripts"
+      - dependency-name: "ajv"
+      - dependency-name: "webpack-dev-server"
+      - dependency-name: "eslint-config-react-app"
+      - dependency-name: "cra-template"

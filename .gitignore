@@ -40,3 +40,5 @@ UNIFIED_SCHEMA_DESIGN.md
 scripts/migrateVenmoIdsToPlayers.js
 firebase-debug.log
 firebase-debug.log
+DEPENDENCY_AUDIT_REPORT.md
+scripts/countVenmoIdsToPort.js

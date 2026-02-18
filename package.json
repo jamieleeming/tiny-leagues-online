@@ -35,7 +35,8 @@
     "analyze-money-flow": "node scripts/analyzeMoneyFlow.js",
     "export-game-results": "node scripts/exportGameResults.js",
     "venmo-buyin-totals": "node scripts/venmoBuyInTotals.js",
-    "migrate-venmo-to-players": "node scripts/migrateVenmoIdsToPlayers.js"
+    "migrate-venmo-to-players": "node scripts/migrateVenmoIdsToPlayers.js",
+    "count-venmo-to-port": "node scripts/countVenmoIdsToPort.js"
   },
   "eslintConfig": {
     "extends": [
