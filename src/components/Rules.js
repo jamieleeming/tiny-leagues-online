@@ -117,7 +117,7 @@ export const Rules = () => {
                 }}
             >
                 <div>
-                    <Box sx={{ mb: 3 }}>
+                    <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, minHeight: 40 }}>
                         <Typography variant="h5" component="h1" fontWeight={600}>
                             Rules
                         </Typography>
