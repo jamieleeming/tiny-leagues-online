@@ -203,10 +203,8 @@ export const ActiveGames = () => {
     const validateForm = () => {
         const errors = {};
 
-        // Validate description
-        if (!title.trim()) {
-            errors.title = 'Description is required';
-        } else if (title.trim().length > 50) {
+        // Validate description (optional, but max 50 chars if provided)
+        if (title.trim().length > 50) {
             errors.title = 'Description must be 50 characters or less';
         }
 
@@ -522,7 +520,7 @@ export const ActiveGames = () => {
                             />
                             <TextField
                                 fullWidth
-                                label="Description"
+                                label="Description (optional)"
                                 value={title}
                                 onChange={(e) => {
                                     setTitle(e.target.value);
