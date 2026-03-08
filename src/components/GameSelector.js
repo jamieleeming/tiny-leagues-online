@@ -3,7 +3,6 @@ import {
     Card,
     CardContent,
     Typography,
-    Box,
     List,
     ListItemButton,
     ListItemText,
