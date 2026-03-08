@@ -32,10 +32,10 @@ export const GameSelector = ({
     };
 
     // Filter and sort games:
-    // 1. Show games from last 7 days, up to max 20 games
-    // 2. OR if no games in last 7 days, show last 5 games (regardless of date)
+    // 1. Show games from last 45 days, up to max 200 games
+    // 2. OR if no games in last 45 days, show last 5 games (regardless of date)
     const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 45);
     
     // Sort all games by startTime descending (most recent first)
     const allGamesSorted = [...games].sort((a, b) => {
@@ -53,7 +53,7 @@ export const GameSelector = ({
     // If we have recent games, show up to 20 of them
     // Otherwise, show the last 5 games (regardless of date)
     const sortedGames = recentGames.length > 0 
-        ? recentGames.slice(0, 20)
+        ? recentGames.slice(0, 200)
         : allGamesSorted.slice(0, 5);
 
     const handleGameClick = async (game) => {
