@@ -27,7 +27,6 @@ export const DonateButton = ({ controlledOpen, onControlledClose, hideButton = f
     
     // Use controlled state if provided, otherwise use internal state
     const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
-    const setOpen = controlledOpen !== undefined ? (onControlledClose || (() => {})) : setInternalOpen;
 
     // Preset donation amounts
     const presetAmounts = [5, 10, 20, 50];
