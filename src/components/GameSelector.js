@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Card,
     CardContent,
@@ -6,9 +6,15 @@ import {
     List,
     ListItemButton,
     ListItemText,
-    Divider
+    Divider,
+    Box,
+    IconButton
 } from '@mui/material';
+import { ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from '@mui/icons-material';
 import { fetchVenmoIdsBatch } from '../utils/venmoIds';
+
+const GAMES_PER_PAGE = 15;
+const MAX_PAGES = 10;
 
 export const GameSelector = ({ 
     selectedGame, 
@@ -23,6 +29,8 @@ export const GameSelector = ({
     setSelectedPlayer,
     onGameSelect
 }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+
     const resetGameSelection = () => {
         setSelectedGame(null);
         setLedgerData(null);
@@ -30,30 +38,24 @@ export const GameSelector = ({
         setSelectedPlayer('');
     };
 
-    // Filter and sort games:
-    // 1. Show games from last 45 days, up to max 200 games
-    // 2. OR if no games in last 45 days, show last 5 games (regardless of date)
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 45);
-    
-    // Sort all games by startTime descending (most recent first)
+    // Sort all games by startTime descending (most recent first); cap at MAX_PAGES for pagination
     const allGamesSorted = [...games].sort((a, b) => {
         const dateA = new Date(a.startTime || a.createdAt || 0);
         const dateB = new Date(b.startTime || b.createdAt || 0);
         return dateB - dateA;
     });
-    
-    // Filter games from last 7 days
-    const recentGames = allGamesSorted.filter(game => {
-        const gameDate = new Date(game.startTime || game.createdAt);
-        return gameDate >= oneWeekAgo;
-    });
-    
-    // If we have recent games, show up to 20 of them
-    // Otherwise, show the last 5 games (regardless of date)
-    const sortedGames = recentGames.length > 0 
-        ? recentGames.slice(0, 200)
-        : allGamesSorted.slice(0, 5);
+
+    const displayableGames = allGamesSorted.slice(0, GAMES_PER_PAGE * MAX_PAGES);
+    const totalPages = Math.max(1, Math.min(MAX_PAGES, Math.ceil(displayableGames.length / GAMES_PER_PAGE)));
+    const effectivePage = Math.min(currentPage, totalPages);
+    const pageStart = (effectivePage - 1) * GAMES_PER_PAGE;
+    const pageEnd = pageStart + GAMES_PER_PAGE;
+    const sortedGames = displayableGames.slice(pageStart, pageEnd);
+
+    // Reset to first page when games list changes (e.g. league switch or refresh)
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [games.length, selectedLeague]);
 
     const handleGameClick = async (game) => {
         // Reset all states first
@@ -175,12 +177,12 @@ export const GameSelector = ({
                                             borderRadius: 2,
                                             mx: 0.5,
                                             mb: 0.5,
-'&.Mui-selected': {
-                                        backgroundColor: 'rgba(250, 250, 250, 0.08)',
-                                        '@media (hover: hover)': {
-                                            '&:hover': { backgroundColor: 'rgba(250, 250, 250, 0.12)' },
-                                        },
-                                    },
+                                            '&.Mui-selected': {
+                                                backgroundColor: 'rgba(250, 250, 250, 0.08)',
+                                                '@media (hover: hover)': {
+                                                    '&:hover': { backgroundColor: 'rgba(250, 250, 250, 0.12)' },
+                                                },
+                                            },
                                         }}
                                     >
                                         <ListItemText 
@@ -198,6 +200,44 @@ export const GameSelector = ({
                         </React.Fragment>
                     ))}
                 </List>
+
+                {totalPages > 1 && (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 1,
+                            mt: 2,
+                            pt: 2,
+                            borderTop: 1,
+                            borderColor: 'divider',
+                            px: 0.5,
+                        }}
+                    >
+                        <IconButton
+                            size="medium"
+                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            disabled={currentPage <= 1}
+                            aria-label="Previous page"
+                            sx={{ mr: -0.5 }}
+                        >
+                            <ChevronLeftIcon />
+                        </IconButton>
+                        <Typography variant="body2" color="text.secondary" sx={{ flex: 1, textAlign: 'center' }}>
+                            Page {effectivePage} of {totalPages}
+                        </Typography>
+                        <IconButton
+                            size="medium"
+                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={currentPage >= totalPages}
+                            aria-label="Next page"
+                            sx={{ ml: -0.5 }}
+                        >
+                            <ChevronRightIcon />
+                        </IconButton>
+                    </Box>
+                )}
             </CardContent>
         </Card>
     );

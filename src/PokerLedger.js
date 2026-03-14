@@ -354,9 +354,8 @@ const PokerLedger = () => {
         
         try {
             const gamesRef = collection(db, 'leagues', selectedLeague, 'games');
-            // Limit to last 100 games - frontend only displays games from last 7 days anyway
-            // This significantly reduces database reads for leagues with many games
-            const q = query(gamesRef, orderBy('createdAt', 'desc'), limit(100));
+            // Fetch up to 500 games; GameSelector paginates in the UI (20 per page)
+            const q = query(gamesRef, orderBy('createdAt', 'desc'), limit(500));
             const gamesSnapshot = await getDocs(q);
             
             const gamesData = gamesSnapshot.docs.map(doc => ({
@@ -367,7 +366,6 @@ const PokerLedger = () => {
             // Games are already sorted by the query, but keep this for safety
             gamesData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             
-            // Track the query (limit(100) means it was limited)
             queryTracker.trackGamesFetch(gamesData.length, true);
             
             setGames(gamesData);
@@ -392,9 +390,8 @@ const PokerLedger = () => {
         
         try {
             const gamesRef = collection(db, 'leagues', leagueId, 'games');
-            // Limit to last 100 games - frontend only displays games from last 7 days anyway
-            // This significantly reduces database reads for leagues with many games
-            const q = query(gamesRef, orderBy('createdAt', 'desc'), limit(100));
+            // Fetch up to 500 games; GameSelector paginates in the UI (20 per page)
+            const q = query(gamesRef, orderBy('createdAt', 'desc'), limit(500));
             const querySnapshot = await getDocs(q);
             
             const gamesList = querySnapshot.docs.map(doc => ({
@@ -402,7 +399,6 @@ const PokerLedger = () => {
                 ...doc.data()
             }));
             
-            // Track the query (limit(100) means it was limited)
             queryTracker.trackGamesFetch(gamesList.length, true);
             
             setGames(gamesList);
