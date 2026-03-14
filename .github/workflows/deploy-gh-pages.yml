@@ -4,6 +4,10 @@ on:
   push:
     branches: [ main ]
 
+# Allow the action to push to the gh-pages branch
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -32,7 +36,7 @@ jobs:
         run: npm run build
 
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@4.1.5
+        uses: JamesIves/github-pages-deploy-action@v4.1.5
         with:
-          branch: main
-          folder: build 
+          branch: gh-pages
+          folder: build

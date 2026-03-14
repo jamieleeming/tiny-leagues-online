@@ -27,8 +27,6 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
     "generate-icon": "node scripts/generateIcon.js",
     "find-player-games": "node archive/analytics/findPlayerGames.js",
     "analyze-money-flow": "node archive/analytics/analyzeMoneyFlow.js",
@@ -57,12 +55,12 @@
   },
   "homepage": "https://online.tinyleagues.com",
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "gh-pages": "^6.3.0"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   },
   "overrides": {
     "nth-check": "^2.1.1",
     "resolve-url-loader": "^5.0.0",
+    "fast-xml-parser": "^5.3.8",
     "react-scripts": {
       "webpack-dev-server": "4.15.1"
     }
