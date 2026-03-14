@@ -354,7 +354,7 @@ const PokerLedger = () => {
         
         try {
             const gamesRef = collection(db, 'leagues', selectedLeague, 'games');
-            // Fetch up to 500 games; GameSelector paginates in the UI (20 per page)
+            // Fetch up to 500 games; GameSelector shows up to 150 (15 per page, 10 pages max)
             const q = query(gamesRef, orderBy('createdAt', 'desc'), limit(500));
             const gamesSnapshot = await getDocs(q);
             
@@ -390,7 +390,7 @@ const PokerLedger = () => {
         
         try {
             const gamesRef = collection(db, 'leagues', leagueId, 'games');
-            // Fetch up to 500 games; GameSelector paginates in the UI (20 per page)
+            // Fetch up to 500 games; GameSelector shows up to 150 (15 per page, 10 pages max)
             const q = query(gamesRef, orderBy('createdAt', 'desc'), limit(500));
             const querySnapshot = await getDocs(q);
             

@@ -13,7 +13,9 @@ import {
 import { ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from '@mui/icons-material';
 import { fetchVenmoIdsBatch } from '../utils/venmoIds';
 
+/** Games per page in the selector (mobile-friendly). */
 const GAMES_PER_PAGE = 15;
+/** Maximum number of pages; selector shows up to 150 games (15 × 10). */
 const MAX_PAGES = 10;
 
 export const GameSelector = ({ 
@@ -38,7 +40,7 @@ export const GameSelector = ({
         setSelectedPlayer('');
     };
 
-    // Sort all games by startTime descending (most recent first); cap at MAX_PAGES for pagination
+    // Sort by date descending; show at most GAMES_PER_PAGE × MAX_PAGES (150) games
     const allGamesSorted = [...games].sort((a, b) => {
         const dateA = new Date(a.startTime || a.createdAt || 0);
         const dateB = new Date(b.startTime || b.createdAt || 0);
